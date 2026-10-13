@@ -28,6 +28,9 @@ pub fn configure(context: &egui::Context) {
     visuals.window_fill = Color32::WHITE;
     visuals.extreme_bg_color = Color32::WHITE;
     visuals.faint_bg_color = Color32::WHITE;
+    visuals.hyperlink_color = Color32::BLACK;
+    visuals.warn_fg_color = Color32::BLACK;
+    visuals.error_fg_color = Color32::BLACK;
     visuals.selection.bg_fill = Color32::BLACK;
     visuals.selection.stroke = Stroke::new(1.0, Color32::WHITE);
     visuals.widgets.noninteractive.fg_stroke = Stroke::new(1.0, Color32::BLACK);
