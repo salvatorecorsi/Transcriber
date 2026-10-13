@@ -1,5 +1,7 @@
 use eframe::egui::{self, Color32, FontId, Pos2, Response, RichText, Sense, Shape, Stroke, Vec2};
 
+pub const STAFF_COLOR: Color32 = Color32::from_gray(155);
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Icon {
     Play,

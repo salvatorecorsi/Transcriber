@@ -4,9 +4,9 @@ Workstation desktop in Rust per studiare registrazioni, rallentarle senza cambia
 
 ## Scarica e avvia
 
-Scarica [Transcriber.exe](https://github.com/salvatorecorsi/Transcriber/releases/download/v0.3.0/Transcriber.exe), aprilo e scegli **Installa AI** dal menù in alto a destra. Il primo avvio scarica il motore e il modello MuScriptor small, circa 200 MB più il motore. Poi la trascrizione funziona offline. Non servono account GitHub, Rust, Python, compilatori o un'installazione separata dei font. Riproduzione audio e sintesi MIDI sono già disponibili nell'eseguibile.
+Scarica [Transcriber.exe](https://github.com/salvatorecorsi/Transcriber/releases/download/v0.3.1/Transcriber.exe), aprilo e scegli **Installa AI** dal menù in alto a destra. Il primo avvio scarica il motore e il modello MuScriptor small, circa 200 MB più il motore. Poi la trascrizione funziona offline. Non servono account GitHub, Rust, Python, compilatori o un'installazione separata dei font. Riproduzione audio e sintesi MIDI sono già disponibili nell'eseguibile.
 
-Per avere tutto pronto anche su un computer senza connessione, scarica [Transcriber-Windows-x64.zip](https://github.com/salvatorecorsi/Transcriber/releases/download/v0.3.0/Transcriber-Windows-x64.zip), estrai l'intera cartella e apri `Transcriber.exe`. Il pacchetto comprende motore CPU, accelerazione Vulkan, modello e licenze. Il file `portable.flag` fa salvare le impostazioni e le trascrizioni nella cartella estratta.
+Per avere tutto pronto anche su un computer senza connessione, scarica [Transcriber-Windows-x64.zip](https://github.com/salvatorecorsi/Transcriber/releases/download/v0.3.1/Transcriber-Windows-x64.zip), estrai l'intera cartella e apri `Transcriber.exe`. Il pacchetto comprende motore CPU, accelerazione Vulkan, modello e licenze. Il file `portable.flag` fa salvare le impostazioni e le trascrizioni nella cartella estratta.
 
 Requisiti: Windows 10 o 11 a 64 bit, uscita audio disponibile e un processore x64 con AVX e F16C. La CPU è sufficiente. Quando il driver offre Vulkan, l'app preferisce la GPU; se il motore GPU non parte, riprova con la CPU. La velocità di trascrizione dipende dall'hardware e dalla durata del brano.
 
@@ -19,6 +19,8 @@ Apri un file audio con l'icona della cartella. Il player offre play/pausa, seek 
 Dal menù in alto a destra, **Trascrivi audio** esegue MuScriptor sul computer. **Modalità strumenti…** apre una finestra per scegliere il riconoscimento automatico, limitare il modello alla chitarra elettrica o indicare il quartetto chitarra/contrabbasso/piano/batteria. La scelta vale per la trascrizione successiva. L'icona di annullamento interrompe il processo. I file audio restano sul computer e non vengono caricati sul server del modello.
 
 Seleziona la parte riconosciuta per mostrarne le note. Le icone **Spartito / Tablatura** cambiano la vista; la tablatura usa accordatura standard E–A–D–G–B–E per chitarra e E–A–D–G per basso, fino al tasto 24. Corde e tasti sono stimati considerando note simultanee, note sostenute e continuità della posizione. Le note non assegnabili sono indicate con `?`. La chitarra usa la chiave di violino all'ottava bassa, conservando l'altezza sonora originale.
+
+Le righe del pentagramma e le corde sono grigie, mentre note e cifre dei tasti restano nere. La tablatura mostra gli attacchi senza linee di durata; le cifre hanno maggiore spazio tra le corde e restano integre anche negli accordi.
 
 Le icone **Audio / MIDI** permettono di ascoltare la registrazione oppure la parte selezionata con i suoni General MIDI incorporati. Il clic su una nota dello spartito o della tablatura ne riproduce subito l'anteprima MIDI. Loop, posizione e velocità restano sincronizzati con la visualizzazione. La scelta della parte cambia la notazione e l'ascolto MIDI; l'audio originale rimane il mix della registrazione.
 

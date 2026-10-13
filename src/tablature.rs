@@ -16,7 +16,7 @@ use std::{
 const GUITAR_TUNING: &[u8] = &[40, 45, 50, 55, 59, 64];
 const BASS_TUNING: &[u8] = &[28, 33, 38, 43];
 const MAX_FRET: u8 = 24;
-const STRING_SPACING: f32 = 15.0;
+const STRING_SPACING: f32 = 18.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct FretPosition {
@@ -44,7 +44,6 @@ struct TabSegment {
     pitch: u8,
     position: Option<FretPosition>,
     tied_from: bool,
-    tied_to: bool,
 }
 
 struct PreparedTablature {
@@ -306,7 +305,6 @@ fn prepare_tablature(
                 pitch: note.pitch,
                 position,
                 tied_from: start > note.start,
-                tied_to: end < note.end,
             });
             start = end;
         }
@@ -499,14 +497,6 @@ impl RowGeometry {
         self.left + measure as f32 * self.width + 14.0 + fraction as f32 * (self.width - 28.0)
     }
 
-    fn end_x(&self, tick: i64) -> f32 {
-        if tick.rem_euclid(self.bar_ticks) == 0 {
-            self.left + ((tick - self.start) / self.bar_ticks) as f32 * self.width - 14.0
-        } else {
-            self.x(tick as f64)
-        }
-    }
-
     fn y(&self, string: usize) -> f32 {
         self.top + (self.string_count - string - 1) as f32 * STRING_SPACING
     }
@@ -532,7 +522,7 @@ fn draw_row(
     let mut hits = Vec::new();
     let painter = ui.painter();
     let end_x = geometry.left + bars as f32 * geometry.width;
-    let staff_stroke = Stroke::new(0.85, ink);
+    let staff_stroke = Stroke::new(0.75, crate::design::STAFF_COLOR);
     for (string, pitch) in tuning.iter().enumerate() {
         let y = geometry.y(string);
         painter.line_segment(
@@ -562,7 +552,7 @@ fn draw_row(
             egui::Align2::LEFT_CENTER,
             (first_bar + measure + 1).to_string(),
             FontId::proportional(11.0),
-            ink,
+            crate::design::STAFF_COLOR,
         );
         let measure_start = geometry.start + measure as i64 * geometry.bar_ticks;
         for beat in 0..settings.beats_per_bar.clamp(1, 12) {
@@ -579,7 +569,11 @@ fn draw_row(
                 } else {
                     1.6
                 },
-                ink,
+                if active {
+                    ink
+                } else {
+                    crate::design::STAFF_COLOR
+                },
             );
         }
         let grid = grid_ticks(settings);
@@ -591,7 +585,7 @@ fn draw_row(
                         Pos2::new(x, geometry.bottom() + 19.0),
                         Pos2::new(x, geometry.bottom() + 21.0),
                     ],
-                    Stroke::new(0.7, ink),
+                    Stroke::new(0.7, crate::design::STAFF_COLOR),
                 );
             }
         }
@@ -607,13 +601,13 @@ fn draw_row(
         );
         painter.circle_filled(Pos2::new(x, geometry.top - 18.0), 3.0, ink);
     }
+    let mut labels = Vec::new();
     let mut unknown: BTreeMap<i64, Vec<&TabSegment>> = BTreeMap::new();
     for segment in segments {
         let Some(position) = segment.position else {
             unknown.entry(segment.start).or_default().push(segment);
             continue;
         };
-        let active = playback_tick >= segment.start as f64 && playback_tick < segment.end as f64;
         let x = geometry.x(segment.start as f64);
         let y = geometry.y(position.string);
         let label = if segment.tied_from {
@@ -621,48 +615,15 @@ fn draw_row(
         } else {
             position.fret.to_string()
         };
-        let label_color = if active { paper } else { ink };
-        let galley = painter.layout_no_wrap(label, FontId::proportional(16.0), label_color);
-        let label_rect = tab_label_rect(Pos2::new(x, y), galley.size());
-        let label_width = label_rect.width();
-        let line_start = x + label_width / 2.0 + 2.0;
-        let line_end = geometry.end_x(segment.end) - 3.0;
-        if line_end > line_start {
-            painter.line_segment(
-                [Pos2::new(line_start, y + 5.0), Pos2::new(line_end, y + 5.0)],
-                Stroke::new(1.15, ink),
-            );
-            painter.line_segment(
-                [Pos2::new(line_end, y + 2.0), Pos2::new(line_end, y + 7.0)],
-                Stroke::new(1.0, ink),
-            );
-        }
-        painter.rect_filled(label_rect, 0.0, if active { ink } else { paper });
-        painter.galley(Pos2::new(x, y) - galley.size() / 2.0, galley, label_color);
+        let galley = painter.layout_no_wrap(label, FontId::proportional(17.0), ink);
+        let (label_origin, label_rect) = tab_label_geometry(Pos2::new(x, y), galley.mesh_bounds);
+        labels.push((label_rect, label_origin, galley));
         hits.push(NoteHit {
             rect: label_rect.expand(1.0),
             pitch: segment.pitch,
             duration: (segment.end - segment.start) as f64 * 60.0
                 / (valid_bpm(settings) * TICKS_PER_BEAT as f64),
         });
-        if segment.tied_to {
-            let boundary_x = geometry.left
-                + ((segment.end - geometry.start) / geometry.bar_ticks) as f32 * geometry.width;
-            painter.line_segment(
-                [
-                    Pos2::new(line_end.max(x + 4.0), y + 5.0),
-                    Pos2::new(boundary_x - 3.0, y + 5.0),
-                ],
-                Stroke::new(1.15, ink),
-            );
-            painter.line_segment(
-                [
-                    Pos2::new(boundary_x - 6.0, y + 2.0),
-                    Pos2::new(boundary_x - 3.0, y + 5.0),
-                ],
-                Stroke::new(1.0, ink),
-            );
-        }
     }
     for (start, missing) in unknown {
         for (index, segment) in missing.iter().enumerate() {
@@ -670,15 +631,11 @@ fn draw_row(
                 geometry.x(start as f64) + index as f32 * 14.0,
                 geometry.top - 17.0,
             );
-            let marker = Rect::from_center_size(center, Vec2::new(13.0, 18.0));
-            ui.painter().rect_filled(marker, 0.0, paper);
-            ui.painter().text(
-                center,
-                egui::Align2::CENTER_CENTER,
-                "?",
-                FontId::proportional(16.0),
-                ink,
-            );
+            let galley = ui
+                .painter()
+                .layout_no_wrap("?".into(), FontId::proportional(17.0), ink);
+            let (label_origin, marker) = tab_label_geometry(center, galley.mesh_bounds);
+            labels.push((marker, label_origin, galley));
             hits.push(NoteHit {
                 rect: marker,
                 pitch: segment.pitch,
@@ -700,11 +657,21 @@ fn draw_row(
             ));
         }
     }
+    for (mask, _, _) in &labels {
+        ui.painter().rect_filled(*mask, 0.0, paper);
+    }
+    for (_, origin, galley) in labels {
+        ui.painter().galley(origin, galley, ink);
+    }
     hits
 }
 
-fn tab_label_rect(center: Pos2, size: Vec2) -> Rect {
-    Rect::from_center_size(center, Vec2::new(size.x + 6.0, size.y.max(15.0)))
+fn tab_label_geometry(center: Pos2, mesh_bounds: Rect) -> (Pos2, Rect) {
+    let origin = center - mesh_bounds.center().to_vec2();
+    let mask = mesh_bounds
+        .translate(origin.to_vec2())
+        .expand2(Vec2::new(3.0, 1.0));
+    (origin, mask)
 }
 
 #[cfg(test)]
@@ -744,7 +711,6 @@ mod tests {
                     fret: 12,
                 }),
                 tied_from,
-                tied_to: false,
             };
             let mut hits = Vec::new();
             let _ = context.run(egui::RawInput::default(), |context| {
@@ -777,6 +743,93 @@ mod tests {
     }
 
     #[test]
+    fn six_string_chord_digits_stay_visible_and_inside_their_preview_targets() {
+        let settings = ScoreSettings::default();
+        let geometry = RowGeometry {
+            start: 0,
+            end: 384,
+            bar_ticks: 384,
+            left: 40.0,
+            width: 400.0,
+            top: 100.0,
+            string_count: 6,
+        };
+        for tied_from in [false, true] {
+            let context = egui::Context::default();
+            crate::design::configure(&context);
+            let segments = GUITAR_TUNING
+                .iter()
+                .enumerate()
+                .map(|(string, open_pitch)| {
+                    let fret = 12 + string as u8 * 2;
+                    TabSegment {
+                        start: 96,
+                        end: 192,
+                        pitch: open_pitch + fret,
+                        position: Some(FretPosition { string, fret }),
+                        tied_from,
+                    }
+                })
+                .collect::<Vec<_>>();
+            let mut hits = Vec::new();
+            let output = context.run(egui::RawInput::default(), |context| {
+                egui::CentralPanel::default().show(context, |ui| {
+                    hits = draw_row(
+                        ui,
+                        &geometry,
+                        &segments,
+                        GUITAR_TUNING,
+                        0,
+                        1,
+                        &settings,
+                        -1.0,
+                        Color32::WHITE,
+                        Color32::BLACK,
+                    );
+                });
+            });
+            assert_eq!(hits.len(), 6);
+            for (segment, hit) in segments.iter().zip(&hits) {
+                let position = segment.position.unwrap();
+                let label = if tied_from {
+                    format!("({})", position.fret)
+                } else {
+                    position.fret.to_string()
+                };
+                let (paint_index, text, clip_rect) = output
+                    .shapes
+                    .iter()
+                    .enumerate()
+                    .find_map(|(index, clipped)| match &clipped.shape {
+                        egui::Shape::Text(text) if text.galley.job.text == label => {
+                            Some((index, text, clipped.clip_rect))
+                        }
+                        _ => None,
+                    })
+                    .unwrap();
+                let bounds = text.visual_bounding_rect();
+                assert!(clip_rect.contains_rect(bounds));
+                assert!(hit.rect.contains_rect(bounds));
+                assert!((bounds.center().y - geometry.y(position.string)).abs() < 0.01);
+                for clipped in &output.shapes[paint_index + 1..] {
+                    if let egui::Shape::Rect(mask) = &clipped.shape {
+                        assert!(mask.fill != Color32::WHITE || !mask.rect.intersects(bounds));
+                    }
+                }
+                for pointer in [bounds.left_center(), bounds.right_center()] {
+                    assert_eq!(
+                        notation_action(pointer, &hits, 10.0),
+                        NotationAction::Preview {
+                            pitch: segment.pitch,
+                            duration: 0.5,
+                        },
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
     fn a_note_without_a_playable_fret_remains_auditionable() {
         let context = egui::Context::default();
         let settings = ScoreSettings::default();
@@ -795,7 +848,6 @@ mod tests {
             pitch: 39,
             position: None,
             tied_from: false,
-            tied_to: false,
         };
         let mut hits = Vec::new();
         let _ = context.run(egui::RawInput::default(), |context| {

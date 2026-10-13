@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, mpsc};
 
-pub const RELEASE_URL: &str = "https://github.com/salvatorecorsi/Transcriber/releases/tag/v0.3.0";
+pub const RELEASE_URL: &str = "https://github.com/salvatorecorsi/Transcriber/releases/tag/v0.3.1";
 const RELEASE_DOWNLOAD: &str =
     "https://github.com/salvatorecorsi/Transcriber/releases/download/v0.2.0";
 const MODEL_URL: &str = "https://huggingface.co/DamRsn/muscriptor-gguf/resolve/d7045f94e8b19427f4ff9542975035e66596e51c/v1/muscriptor-small-f16.gguf";
@@ -111,7 +111,7 @@ fn download(
         let agent: ureq::Agent = configuration.into();
         let response = agent
             .get(url)
-            .header("User-Agent", "Transcriber/0.3.0")
+            .header("User-Agent", "Transcriber/0.3.1")
             .call()
             .map_err(|error| format!("Download {title} fallito: {error}"))?;
         let length = response

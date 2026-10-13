@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-10-13 — Transcriber! 0.3.1: leggibilità della notazione
+
+### Richiesta
+Migliorare la leggibilità della tablatura, eliminare gli indicatori di durata e continuità e rendere grigia la struttura dello spartito.
+
+### Modifiche effettuate
+- `src/design.rs`, `src/score.rs`, `src/app.rs`: colore grigio condiviso per pentagrammi, stanghette e tagli addizionali, compreso lo spartito vuoto; note, accordi e cursore di riproduzione restano neri.
+- `src/tablature.rs`: cifre Petaluma da 17 pixel centrate sulla geometria effettiva, distanza tra corde di 18 pixel e maschere disegnate prima di tutte le cifre per evitare il taglio dei tasti negli accordi a sei corde.
+- `src/tablature.rs`: rimossi segmenti di durata, frecce di continuità e calcoli grafici degli estremi; i tasti continuati restano tra parentesi. Griglia, battiti inattivi e numeri di battuta sono grigi; cifre, accordi e cursore sono neri.
+- `Cargo.toml`, `Cargo.lock`, `src/runtime.rs`, `README.md`: aggiornamento della versione e della documentazione alla 0.3.1.
+
+### Note
+- Le durate MIDI originali e la gestione delle note sostenute nell'assegnazione delle corde restano invariate.
+- Superati 59 test e Clippy con warning trattati come errori, incluso un test di regressione per accordi a sei corde con tasti a due cifre e continuazioni. Verificati spartito e tablatura tramite screenshot e un campione locale dell'accordo Bbmaj9/D tratto dal brano di Rosenwinkel.
+- La release pubblica 0.3.1 è in preparazione; questa voce non ne attesta ancora la pubblicazione.
+
+---
+
 ## 2026-10-13 — Transcriber! 0.3.0: interfaccia compatta e loop trascinabili
 
 ### Richiesta

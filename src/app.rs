@@ -956,7 +956,7 @@ impl TranscribeApp {
                         Pos2::new(rect.left() + 30.0, y),
                         Pos2::new(rect.right() - 30.0, y),
                     ],
-                    Stroke::new(0.7, Color32::BLACK),
+                    Stroke::new(0.7, design::STAFF_COLOR),
                 );
             }
             painter.text(

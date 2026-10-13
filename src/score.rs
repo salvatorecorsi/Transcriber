@@ -714,7 +714,7 @@ fn draw_row(
 ) -> Vec<NoteHit> {
     let mut hits = Vec::new();
     let end_x = geometry.left + bars as f32 * geometry.width;
-    let stroke = Stroke::new(0.85, ink);
+    let stroke = Stroke::new(0.75, crate::design::STAFF_COLOR);
     for line in 0..5 {
         let y = geometry.staff_top + line as f32 * 10.0;
         painter.line_segment(
@@ -930,7 +930,7 @@ fn draw_chord(
                         Pos2::new(head_x - 9.0, ledger_y),
                         Pos2::new(head_x + 9.0, ledger_y),
                     ],
-                    Stroke::new(1.0, color),
+                    Stroke::new(0.8, crate::design::STAFF_COLOR),
                 );
             }
         } else if step > 8 {
@@ -941,7 +941,7 @@ fn draw_chord(
                         Pos2::new(head_x - 9.0, ledger_y),
                         Pos2::new(head_x + 9.0, ledger_y),
                     ],
-                    Stroke::new(1.0, color),
+                    Stroke::new(0.8, crate::design::STAFF_COLOR),
                 );
             }
         }
