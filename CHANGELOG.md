@@ -14,7 +14,7 @@ Migliorare la leggibilità della tablatura, eliminare gli indicatori di durata e
 ### Note
 - Le durate MIDI originali e la gestione delle note sostenute nell'assegnazione delle corde restano invariate.
 - Superati 59 test e Clippy con warning trattati come errori, incluso un test di regressione per accordi a sei corde con tasti a due cifre e continuazioni. Verificati spartito e tablatura tramite screenshot e un campione locale dell'accordo Bbmaj9/D tratto dal brano di Rosenwinkel.
-- La release pubblica 0.3.1 è in preparazione; questa voce non ne attesta ancora la pubblicazione.
+- Pubblicata la release v0.3.1 su https://github.com/salvatorecorsi/Transcriber/releases/tag/v0.3.1, con eseguibile autonomo e ZIP completo; verificati tutti i download senza login, i digest SHA256 dei cinque asset e la build Windows su GitHub Actions.
 
 ---
 
