@@ -10,6 +10,7 @@ mod runtime;
 mod score;
 mod tablature;
 mod transcription;
+mod waveform;
 
 fn main() -> eframe::Result {
     if app::run_command_line() {

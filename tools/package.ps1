@@ -77,11 +77,13 @@ Estrai tutta la cartella e apri Transcriber.exe.
 Il motore AI e il modello sono gia inclusi: non servono installazioni, account o connessione.
 Font e suoni MIDI sono incorporati nell'applicazione.
 
-Apri il tuo audio, premi Trascrivi audio e seleziona la parte da studiare.
-Alterna Spartito / Tablatura e Audio / MIDI; clicca una nota per ascoltarla.
+Apri il tuo audio con l'icona della cartella e scegli Trascrivi audio dal menu in alto a destra.
+Seleziona la parte da studiare e usa le icone Spartito / Tablatura e Audio / MIDI.
+Clicca una nota per ascoltarla; trascina le due stanghette colorate per regolare il loop.
+Il menu contiene gli export MIDI e MusicXML e le finestre Modalita strumenti e Impostazioni di lettura.
 Le trascrizioni e le impostazioni si salvano nella stessa cartella dell'app.
 
-Se scarichi soltanto Transcriber.exe, aprilo e premi Installa AI una volta.
+Se scarichi soltanto Transcriber.exe, aprilo e scegli Installa AI dal menu una volta.
 In questa modalita i componenti AI e i salvataggi si trovano in %LOCALAPPDATA%\Transcriber.
 
 Motore muscriptor.cpp: MIT. Modello MuScriptor small: CC BY-NC 4.0.

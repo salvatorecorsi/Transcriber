@@ -1,5 +1,34 @@
 use eframe::egui::{self, Color32, FontId, Pos2, Response, RichText, Sense, Shape, Stroke, Vec2};
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Icon {
+    Play,
+    Pause,
+    Backward,
+    Forward,
+    Repeat,
+    Audio,
+    Midi,
+    Volume,
+    Speed,
+    Score,
+    Tablature,
+    Settings,
+    Menu,
+    ZoomIn,
+    ZoomOut,
+    Folder,
+    Transcribe,
+    Instruments,
+    ExportMidi,
+    ExportScore,
+    Info,
+    Tap,
+    Downbeat,
+    Cancel,
+    Fit,
+}
+
 pub fn configure(context: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
     fonts.font_data.insert(
@@ -72,10 +101,6 @@ pub fn button(label: &str) -> egui::Button<'static> {
         .corner_radius(0.0)
 }
 
-pub fn small_button(ui: &mut egui::Ui, label: &str) -> Response {
-    ui.add(button(label).small())
-}
-
 pub fn slider(ui: &mut egui::Ui, slider: egui::Slider<'_>) -> Response {
     ui.scope(|ui| {
         ui.visuals_mut().widgets.inactive.bg_fill = Color32::BLACK;
@@ -84,43 +109,346 @@ pub fn slider(ui: &mut egui::Ui, slider: egui::Slider<'_>) -> Response {
     .inner
 }
 
-pub fn ink_button(ui: &mut egui::Ui, label: &str, minimum: Vec2, selected: bool) -> Response {
-    let font = FontId::proportional(17.0);
-    let text = ui
-        .painter()
-        .layout_no_wrap(label.to_owned(), font, Color32::WHITE);
-    let size = (text.size() + Vec2::new(24.0, 15.0)).max(minimum);
-    let (rect, response) = ui.allocate_exact_size(size, Sense::click());
-    let seed = label.bytes().fold(0usize, |total, byte| {
-        total.wrapping_mul(31).wrapping_add(byte as usize)
+pub fn icon_button(ui: &mut egui::Ui, icon: Icon, tooltip: &str, selected: bool) -> Response {
+    let (rect, response) = ui.allocate_exact_size(Vec2::splat(36.0), Sense::click());
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(egui::WidgetType::Button, ui.is_enabled(), selected, tooltip)
     });
-    let skew = 0.6 + (seed % 5) as f32 * 0.22;
-    let polygon = vec![
-        Pos2::new(rect.left() + 0.5, rect.top() + skew),
-        Pos2::new(rect.right() - 0.5, rect.top()),
-        Pos2::new(rect.right(), rect.bottom() - skew),
-        Pos2::new(rect.left(), rect.bottom()),
-    ];
-    let ink = if ui.is_enabled() {
-        Color32::BLACK
-    } else {
-        Color32::BLACK.gamma_multiply(0.4)
-    };
-    ui.painter()
-        .add(Shape::convex_polygon(polygon, ink, Stroke::NONE));
-    ui.painter().galley(
-        rect.center() - text.size() * 0.5 + Vec2::new(0.0, 0.25),
-        text,
-        Color32::WHITE,
-    );
-    if selected || response.hovered() {
-        ui.painter().line_segment(
-            [
-                Pos2::new(rect.left() + 9.0, rect.bottom() - 4.5),
-                Pos2::new(rect.right() - 8.0, rect.bottom() - 5.4),
+    if ui.is_rect_visible(rect) {
+        let skew = 0.7 + (icon as usize % 5) as f32 * 0.16;
+        let ink = if ui.is_enabled() {
+            Color32::BLACK
+        } else {
+            Color32::BLACK.gamma_multiply(0.4)
+        };
+        ui.painter().add(Shape::convex_polygon(
+            vec![
+                Pos2::new(rect.left() + 0.4, rect.top() + skew),
+                Pos2::new(rect.right() - 0.5, rect.top()),
+                Pos2::new(rect.right(), rect.bottom() - skew),
+                Pos2::new(rect.left(), rect.bottom()),
             ],
-            Stroke::new(1.0, Color32::WHITE),
+            ink,
+            Stroke::NONE,
+        ));
+        paint_icon(
+            ui.painter(),
+            icon,
+            rect.center() - Vec2::splat(12.0),
+            Color32::WHITE,
+            ink,
+        );
+        if selected || response.hovered() || response.has_focus() {
+            ui.painter().line_segment(
+                [
+                    Pos2::new(rect.left() + 6.0, rect.bottom() - 3.0),
+                    Pos2::new(rect.right() - 6.0, rect.bottom() - 3.7),
+                ],
+                Stroke::new(if selected { 2.0 } else { 1.0 }, Color32::WHITE),
+            );
+        }
+    }
+    response
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .on_hover_text(tooltip)
+}
+
+pub fn icon_label(ui: &mut egui::Ui, icon: Icon, tooltip: &str) -> Response {
+    let (rect, response) = ui.allocate_exact_size(Vec2::splat(22.0), Sense::hover());
+    response.widget_info(|| {
+        egui::WidgetInfo::labeled(egui::WidgetType::Label, ui.is_enabled(), tooltip)
+    });
+    if ui.is_rect_visible(rect) {
+        paint_icon(
+            ui.painter(),
+            icon,
+            rect.center() - Vec2::splat(12.0),
+            Color32::BLACK,
+            Color32::WHITE,
         );
     }
-    response.on_hover_cursor(egui::CursorIcon::PointingHand)
+    response.on_hover_text(tooltip)
+}
+
+fn paint_icon(
+    painter: &egui::Painter,
+    icon: Icon,
+    origin: Pos2,
+    foreground: Color32,
+    background: Color32,
+) {
+    let position = |x: f32, y: f32| origin + Vec2::new(x, y);
+    let stroke = Stroke::new(1.8, foreground);
+    let line = |points: &[(f32, f32)]| {
+        painter.add(Shape::line(
+            points.iter().map(|&(x, y)| position(x, y)).collect(),
+            stroke,
+        ));
+    };
+    let polygon = |points: &[(f32, f32)]| {
+        painter.add(Shape::convex_polygon(
+            points.iter().map(|&(x, y)| position(x, y)).collect(),
+            foreground,
+            Stroke::NONE,
+        ));
+    };
+    let rectangle = |left: f32, top: f32, right: f32, bottom: f32| {
+        painter.rect_filled(
+            egui::Rect::from_min_max(position(left, top), position(right, bottom)),
+            0.0,
+            foreground,
+        );
+    };
+    let ring = |x: f32, y: f32, radius: f32| {
+        painter.circle_stroke(position(x, y), radius, stroke);
+    };
+    match icon {
+        Icon::Play => polygon(&[(8.0, 4.0), (20.0, 12.0), (8.0, 20.0)]),
+        Icon::Pause => {
+            rectangle(6.0, 4.0, 10.0, 20.0);
+            rectangle(14.0, 4.0, 18.0, 20.0);
+        }
+        Icon::Backward => {
+            polygon(&[(12.0, 5.0), (3.0, 12.0), (12.0, 19.0)]);
+            polygon(&[(22.0, 5.0), (13.0, 12.0), (22.0, 19.0)]);
+        }
+        Icon::Forward => {
+            polygon(&[(2.0, 5.0), (11.0, 12.0), (2.0, 19.0)]);
+            polygon(&[(12.0, 5.0), (21.0, 12.0), (12.0, 19.0)]);
+        }
+        Icon::Repeat => {
+            line(&[(4.0, 10.0), (4.0, 6.0), (19.0, 6.0)]);
+            line(&[(20.0, 14.0), (20.0, 18.0), (5.0, 18.0)]);
+            polygon(&[(17.0, 2.0), (22.0, 6.0), (17.0, 10.0)]);
+            polygon(&[(7.0, 14.0), (2.0, 18.0), (7.0, 22.0)]);
+        }
+        Icon::Audio => {
+            for (x, height) in [
+                (3.0, 3.0),
+                (7.5, 7.0),
+                (12.0, 10.0),
+                (16.5, 5.0),
+                (21.0, 2.0),
+            ] {
+                line(&[(x, 12.0 - height), (x, 12.0 + height)]);
+            }
+        }
+        Icon::Midi => paint_keyboard(
+            painter,
+            egui::Rect::from_min_size(position(3.0, 5.0), Vec2::new(18.0, 14.0)),
+            foreground,
+            background,
+        ),
+        Icon::Volume => {
+            polygon(&[
+                (3.0, 9.0),
+                (7.0, 9.0),
+                (12.0, 5.0),
+                (12.0, 19.0),
+                (7.0, 15.0),
+                (3.0, 15.0),
+            ]);
+            line(&[(16.0, 8.0), (18.0, 10.0), (18.0, 14.0), (16.0, 16.0)]);
+            line(&[(19.0, 5.0), (22.0, 8.0), (22.0, 16.0), (19.0, 19.0)]);
+        }
+        Icon::Speed => {
+            line(&[
+                (3.0, 18.0),
+                (3.0, 12.0),
+                (5.0, 7.0),
+                (9.0, 4.0),
+                (15.0, 4.0),
+                (19.0, 7.0),
+                (21.0, 12.0),
+                (21.0, 18.0),
+            ]);
+            line(&[(12.0, 16.0), (17.0, 9.0)]);
+            painter.circle_filled(position(12.0, 16.0), 2.0, foreground);
+            line(&[(6.0, 18.0), (18.0, 18.0)]);
+        }
+        Icon::Score => {
+            for y in [5.0, 8.0, 11.0, 14.0, 17.0] {
+                painter.line_segment(
+                    [position(2.0, y), position(22.0, y)],
+                    Stroke::new(0.7, foreground),
+                );
+            }
+            line(&[(16.0, 16.0), (16.0, 3.0)]);
+            painter.add(Shape::ellipse_filled(
+                position(13.0, 16.0),
+                Vec2::new(3.3, 2.1),
+                foreground,
+            ));
+        }
+        Icon::Tablature => {
+            for y in [4.0, 7.0, 10.0, 13.0, 16.0, 19.0] {
+                painter.line_segment(
+                    [position(2.0, y), position(22.0, y)],
+                    Stroke::new(0.7, foreground),
+                );
+            }
+            painter.rect_filled(
+                egui::Rect::from_min_max(position(7.0, 6.0), position(17.0, 19.5)),
+                0.0,
+                background,
+            );
+            line(&[
+                (16.0, 7.0),
+                (9.0, 7.0),
+                (9.0, 12.0),
+                (15.0, 12.0),
+                (16.0, 14.0),
+                (16.0, 16.0),
+                (14.0, 18.0),
+                (9.0, 18.0),
+            ]);
+        }
+        Icon::Settings => {
+            ring(12.0, 12.0, 6.7);
+            ring(12.0, 12.0, 2.5);
+            for index in 0..8 {
+                let angle = index as f32 * std::f32::consts::FRAC_PI_4;
+                line(&[
+                    (12.0 + angle.cos() * 7.0, 12.0 + angle.sin() * 7.0),
+                    (12.0 + angle.cos() * 10.0, 12.0 + angle.sin() * 10.0),
+                ]);
+            }
+        }
+        Icon::Menu => {
+            for y in [6.0, 12.0, 18.0] {
+                line(&[(3.0, y), (21.0, y)]);
+            }
+        }
+        Icon::ZoomIn | Icon::ZoomOut => {
+            ring(10.0, 10.0, 6.5);
+            line(&[(15.0, 15.0), (21.0, 21.0)]);
+            line(&[(6.5, 10.0), (13.5, 10.0)]);
+            if icon == Icon::ZoomIn {
+                line(&[(10.0, 6.5), (10.0, 13.5)]);
+            }
+        }
+        Icon::Folder => {
+            line(&[
+                (3.0, 19.0),
+                (3.0, 5.0),
+                (9.0, 5.0),
+                (12.0, 8.0),
+                (21.0, 8.0),
+                (21.0, 19.0),
+                (3.0, 19.0),
+            ]);
+            line(&[(3.0, 10.0), (21.0, 10.0)]);
+        }
+        Icon::Transcribe => {
+            line(&[(3.0, 9.0), (3.0, 15.0)]);
+            line(&[(6.0, 5.0), (6.0, 19.0)]);
+            line(&[(9.0, 8.0), (9.0, 16.0)]);
+            line(&[(12.0, 12.0), (17.0, 12.0)]);
+            line(&[(14.0, 9.0), (17.0, 12.0), (14.0, 15.0)]);
+            line(&[(21.0, 17.0), (21.0, 4.0), (17.0, 5.0)]);
+            painter.add(Shape::ellipse_filled(
+                position(19.0, 18.0),
+                Vec2::new(2.5, 1.9),
+                foreground,
+            ));
+        }
+        Icon::Instruments => {
+            for (x, y) in [(5.0, 8.0), (12.0, 16.0), (19.0, 11.0)] {
+                line(&[(x, 3.0), (x, y - 3.0)]);
+                line(&[(x, y + 3.0), (x, 21.0)]);
+                ring(x, y, 2.8);
+            }
+        }
+        Icon::ExportMidi => {
+            paint_keyboard(
+                painter,
+                egui::Rect::from_min_size(position(3.0, 14.0), Vec2::new(18.0, 7.0)),
+                foreground,
+                background,
+            );
+            line(&[(12.0, 2.0), (12.0, 11.0)]);
+            line(&[(8.0, 7.0), (12.0, 11.0), (16.0, 7.0)]);
+        }
+        Icon::ExportScore => {
+            line(&[
+                (3.0, 3.0),
+                (11.0, 3.0),
+                (15.0, 7.0),
+                (15.0, 21.0),
+                (3.0, 21.0),
+                (3.0, 3.0),
+            ]);
+            line(&[(11.0, 3.0), (11.0, 7.0), (15.0, 7.0)]);
+            line(&[(6.0, 12.0), (12.0, 12.0)]);
+            line(&[(6.0, 16.0), (12.0, 16.0)]);
+            line(&[(20.0, 4.0), (20.0, 16.0)]);
+            line(&[(17.0, 13.0), (20.0, 16.0), (23.0, 13.0)]);
+        }
+        Icon::Info => {
+            ring(12.0, 12.0, 9.0);
+            painter.circle_filled(position(12.0, 7.0), 1.2, foreground);
+            line(&[(12.0, 11.0), (12.0, 17.0)]);
+        }
+        Icon::Tap => {
+            line(&[
+                (7.0, 21.0),
+                (4.0, 15.0),
+                (4.0, 12.0),
+                (6.0, 11.0),
+                (9.0, 15.0),
+                (9.0, 6.0),
+                (11.0, 4.0),
+                (13.0, 6.0),
+                (13.0, 11.0),
+                (18.0, 12.0),
+                (20.0, 14.0),
+                (19.0, 21.0),
+            ]);
+            line(&[(5.0, 3.0), (3.0, 1.0)]);
+            line(&[(17.0, 3.0), (19.0, 1.0)]);
+        }
+        Icon::Downbeat => {
+            line(&[(4.0, 20.0), (20.0, 20.0)]);
+            line(&[(12.0, 3.0), (12.0, 16.0)]);
+            polygon(&[(7.0, 11.0), (12.0, 17.0), (17.0, 11.0)]);
+        }
+        Icon::Cancel => {
+            line(&[(5.0, 5.0), (19.0, 19.0)]);
+            line(&[(19.0, 5.0), (5.0, 19.0)]);
+        }
+        Icon::Fit => {
+            line(&[(9.0, 3.0), (3.0, 3.0), (3.0, 9.0)]);
+            line(&[(15.0, 3.0), (21.0, 3.0), (21.0, 9.0)]);
+            line(&[(3.0, 15.0), (3.0, 21.0), (9.0, 21.0)]);
+            line(&[(21.0, 15.0), (21.0, 21.0), (15.0, 21.0)]);
+        }
+    }
+}
+
+fn paint_keyboard(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    foreground: Color32,
+    background: Color32,
+) {
+    let position = |x: f32, y: f32| rect.min + Vec2::new(x, y);
+    painter.rect_filled(rect, 0.0, foreground);
+    for index in 1..4 {
+        let x = rect.width() * index as f32 / 4.0;
+        painter.line_segment(
+            [
+                position(x, rect.height() * 0.55),
+                position(x, rect.height()),
+            ],
+            Stroke::new(1.0, background),
+        );
+        painter.rect_filled(
+            egui::Rect::from_min_max(
+                position(x - 1.3, 0.0),
+                position(x + 1.3, rect.height() * 0.55),
+            ),
+            0.0,
+            background,
+        );
+    }
 }

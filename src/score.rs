@@ -569,30 +569,6 @@ pub fn render_score(
                 return;
             }
             let clef = prepared.clef;
-            let clef_label = match clef {
-                Clef::Treble => "Chiave di violino",
-                Clef::Guitar => "Chitarra · chiave di violino 8 bassa",
-                Clef::Bass => "Chiave di basso",
-                Clef::Percussion => "Percussioni",
-            };
-            ui.label(
-                egui::RichText::new(format!(
-                    "{}    {}/4    {:.0} bpm",
-                    clef_label,
-                    settings.beats_per_bar,
-                    valid_bpm(settings)
-                ))
-                .color(ink)
-                .size(12.0),
-            );
-            ui.label(
-                egui::RichText::new(
-                    "Clic su una nota per sentirla · clic sul pentagramma per spostare l’ascolto",
-                )
-                .color(ink)
-                .size(11.0),
-            );
-            ui.add_space(8.0);
             let segments = &prepared.segments;
             let bar = prepared.bar;
             let first_tick = prepared.first_tick;

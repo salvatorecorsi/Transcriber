@@ -1,12 +1,12 @@
 # Transcriber!
 
-Workstation desktop in Rust per studiare registrazioni, rallentarle senza cambiare intonazione e trascriverle in spartito, tablatura e MIDI. Interfaccia bianca e nera ispirata ai jazz Real Book, font Petaluma Script e pulsanti con il bordo irregolare di una fotocopia.
+Workstation desktop in Rust per studiare registrazioni, rallentarle senza cambiare intonazione e trascriverle in spartito, tablatura e MIDI. Interfaccia ispirata ai jazz Real Book, font Petaluma Script e comandi a icone con il bordo irregolare di una fotocopia. I due limiti del loop hanno colori distinti per riconoscerli sulla forma d'onda.
 
 ## Scarica e avvia
 
-Scarica [Transcriber.exe](https://github.com/salvatorecorsi/Transcriber/releases/download/v0.2.0/Transcriber.exe), aprilo e premi **Installa AI**. Il primo avvio scarica il motore e il modello MuScriptor small, circa 200 MB più il motore. Poi la trascrizione funziona offline. Non servono account GitHub, Rust, Python, compilatori o un'installazione separata dei font. Riproduzione audio e sintesi MIDI sono già disponibili nell'eseguibile.
+Scarica [Transcriber.exe](https://github.com/salvatorecorsi/Transcriber/releases/download/v0.3.0/Transcriber.exe), aprilo e scegli **Installa AI** dal menù in alto a destra. Il primo avvio scarica il motore e il modello MuScriptor small, circa 200 MB più il motore. Poi la trascrizione funziona offline. Non servono account GitHub, Rust, Python, compilatori o un'installazione separata dei font. Riproduzione audio e sintesi MIDI sono già disponibili nell'eseguibile.
 
-Per avere tutto pronto anche su un computer senza connessione, scarica [Transcriber-Windows-x64.zip](https://github.com/salvatorecorsi/Transcriber/releases/download/v0.2.0/Transcriber-Windows-x64.zip), estrai l'intera cartella e apri `Transcriber.exe`. Il pacchetto comprende motore CPU, accelerazione Vulkan, modello e licenze. Il file `portable.flag` fa salvare le impostazioni e le trascrizioni nella cartella estratta.
+Per avere tutto pronto anche su un computer senza connessione, scarica [Transcriber-Windows-x64.zip](https://github.com/salvatorecorsi/Transcriber/releases/download/v0.3.0/Transcriber-Windows-x64.zip), estrai l'intera cartella e apri `Transcriber.exe`. Il pacchetto comprende motore CPU, accelerazione Vulkan, modello e licenze. Il file `portable.flag` fa salvare le impostazioni e le trascrizioni nella cartella estratta.
 
 Requisiti: Windows 10 o 11 a 64 bit, uscita audio disponibile e un processore x64 con AVX e F16C. La CPU è sufficiente. Quando il driver offre Vulkan, l'app preferisce la GPU; se il motore GPU non parte, riprova con la CPU. La velocità di trascrizione dipende dall'hardware e dalla durata del brano.
 
@@ -14,19 +14,19 @@ Tutti i download sono disponibili nelle [release pubbliche](https://github.com/s
 
 ## Studiare un brano
 
-Apri un file audio dall'interfaccia. Il player offre play/pausa, seek sulla waveform, zoom, volume, loop A–B e velocità da 0,25× a 1,5× mantenendo l'intonazione. Spazio alterna play/pausa, le frecce spostano di cinque secondi e Home torna all'inizio. I imposta A, O imposta B e L attiva il loop.
+Apri un file audio con l'icona della cartella. Il player offre play/pausa, seek sulla waveform, zoom, volume e velocità da 0,25× a 1,5× mantenendo l'intonazione. I comandi hanno tooltip con il nome della funzione. Trascina le due stanghette colorate sulla waveform per impostare inizio e fine del loop; l'icona del loop lo attiva o disattiva. Spazio alterna play/pausa, le frecce spostano di cinque secondi e Home torna all'inizio. I imposta l'inizio del loop, O la fine e L lo attiva.
 
-**Trascrivi audio** esegue MuScriptor sul computer. Puoi lasciare il riconoscimento automatico, limitare il modello alla chitarra elettrica o indicare il quartetto chitarra/contrabbasso/piano/batteria. **Annulla** interrompe il processo. I file audio restano sul computer e non vengono caricati sul server del modello.
+Dal menù in alto a destra, **Trascrivi audio** esegue MuScriptor sul computer. **Modalità strumenti…** apre una finestra per scegliere il riconoscimento automatico, limitare il modello alla chitarra elettrica o indicare il quartetto chitarra/contrabbasso/piano/batteria. La scelta vale per la trascrizione successiva. L'icona di annullamento interrompe il processo. I file audio restano sul computer e non vengono caricati sul server del modello.
 
-Seleziona la parte riconosciuta per mostrarne le note. **Spartito / Tablatura** cambia la vista; la tablatura usa accordatura standard E–A–D–G–B–E per chitarra e E–A–D–G per basso, fino al tasto 24. Corde e tasti sono stimati considerando note simultanee, note sostenute e continuità della posizione. Le note non assegnabili sono indicate con `?`. La chitarra usa la chiave di violino all'ottava bassa, conservando l'altezza sonora originale.
+Seleziona la parte riconosciuta per mostrarne le note. Le icone **Spartito / Tablatura** cambiano la vista; la tablatura usa accordatura standard E–A–D–G–B–E per chitarra e E–A–D–G per basso, fino al tasto 24. Corde e tasti sono stimati considerando note simultanee, note sostenute e continuità della posizione. Le note non assegnabili sono indicate con `?`. La chitarra usa la chiave di violino all'ottava bassa, conservando l'altezza sonora originale.
 
-**Audio / MIDI** permette di ascoltare la registrazione oppure la parte selezionata con i suoni General MIDI incorporati. Il clic su una nota dello spartito o della tablatura ne riproduce subito l'anteprima MIDI. Loop, posizione e velocità restano sincronizzati con la visualizzazione. La scelta della parte cambia la notazione e l'ascolto MIDI; l'audio originale rimane il mix della registrazione.
+Le icone **Audio / MIDI** permettono di ascoltare la registrazione oppure la parte selezionata con i suoni General MIDI incorporati. Il clic su una nota dello spartito o della tablatura ne riproduce subito l'anteprima MIDI. Loop, posizione e velocità restano sincronizzati con la visualizzazione. La scelta della parte cambia la notazione e l'ascolto MIDI; l'audio originale rimane il mix della registrazione.
 
 Le sigle degli **accordi** sono inferite dalle note simultanee e sostenute riconosciute nell'intera trascrizione. Comprendono qualità maggiori, minori, diminuite, aumentate, sospese, settime ed estensioni jazz. Sono una lettura armonica automatica: un voicing senza fondamentale o una nota estranea può avere più interpretazioni.
 
-BPM, Tap, metro, quantizzazione e posizione del primo battito regolano la lettura ritmica; i tempi MIDI rilevati dal modello rimangono originali. Con **Segui ascolto** lo spartito scorre durante la riproduzione; disattivalo per consultarlo liberamente. Il clic in un punto libero del pentagramma sposta l'ascolto.
+**Impostazioni di lettura…** nel menù apre i controlli per BPM, Tap, metro, quantizzazione e posizione del primo battito; i tempi MIDI rilevati dal modello rimangono originali. Nella stessa finestra, **Segui ascolto** fa scorrere lo spartito durante la riproduzione e **Mostra accordi** controlla le sigle armoniche. Il clic in un punto libero del pentagramma sposta l'ascolto.
 
-**Esporta MIDI** salva tutte le parti riconosciute. **MusicXML** salva la parte selezionata per correggere e impaginare la trascrizione in un editor di spartiti. Note, ritmica, accordi e diteggiature restano risultati automatici da rifinire musicalmente.
+Gli export sono nel menù in alto a destra: **Esporta MIDI** salva tutte le parti riconosciute; **Esporta MusicXML** salva la parte selezionata per correggere e impaginare la trascrizione in un editor di spartiti. Note, ritmica, accordi e diteggiature restano risultati automatici da rifinire musicalmente.
 
 ## Salvataggi
 

@@ -341,7 +341,7 @@ pub fn render_tablature(
     };
     let prepared = prepare_tablature(ui, notes, settings, tuning);
     let mut action = None;
-    egui::Frame::new()
+    let frame = egui::Frame::new()
         .fill(paper)
         .corner_radius(0.0)
         .inner_margin(16.0)
@@ -357,39 +357,6 @@ pub fn render_tablature(
                 });
                 return;
             }
-            let instrument = if tuning.len() == 6 {
-                "Chitarra · E A D G B E"
-            } else {
-                "Basso · E A D G"
-            };
-            ui.label(
-                egui::RichText::new(format!(
-                    "{}    {}/4    {:.0} bpm",
-                    instrument,
-                    settings.beats_per_bar,
-                    valid_bpm(settings)
-                ))
-                .color(ink)
-                .size(12.0),
-            );
-            ui.label(
-                egui::RichText::new(
-                    "Posizioni suggerite · clic su un tasto per sentirlo · linea = durata",
-                )
-                .color(ink)
-                .size(11.0),
-            );
-            if prepared.unknown_notes > 0 {
-                ui.label(
-                    egui::RichText::new(format!(
-                        "?  {} note senza posizione: fuori dai 24 tasti o corde già occupate",
-                        prepared.unknown_notes
-                    ))
-                    .color(ink)
-                    .size(11.0),
-                );
-            }
-            ui.add_space(8.0);
             let available_width = ui.available_width();
             let minimum_bar_width = minimum_bar_width(settings);
             let columns = ((available_width - 60.0) / minimum_bar_width)
@@ -505,6 +472,12 @@ pub fn render_tablature(
                     }
                 });
         });
+    if prepared.unknown_notes > 0 {
+        frame.response.on_hover_text(format!(
+            "? {} note senza posizione: fuori dai 24 tasti o corde già occupate",
+            prepared.unknown_notes
+        ));
+    }
     action
 }
 

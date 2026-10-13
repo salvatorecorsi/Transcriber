@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-10-13 — Transcriber! 0.3.0: interfaccia compatta e loop trascinabili
+
+### Richiesta
+Ripulire e allineare l'interfaccia, sostituire i testi dei pulsanti con icone e rimuovere le informazioni audio superflue. Gestire il loop con due stanghette colorate trascinabili e raccogliere trascrizione, esportazioni e modalità degli strumenti nel menu in alto a destra.
+
+### Modifiche effettuate
+- `src/design.rs`, `src/app.rs`: pulsanti a icona vettoriale con dimensioni uniformi di 36 pixel, tooltip ed etichette accessibili; trasporto compatto con selezione Audio/MIDI, riproduzione, salti, velocità e volume.
+- `src/waveform.rs`, `src/app.rs`, `src/main.rs`: maniglie rosse e blu trascinabili per gli estremi del loop, priorità del trascinamento sul seek, vincoli sugli estremi e inseguimento sospeso durante l'interazione; rimossa la riga di controlli Loop A/B e mantenute le scorciatoie con un pulsante di attivazione a icona.
+- `src/app.rs`: menu in alto a destra per trascrizione o installazione AI, esportazioni MIDI e MusicXML, modalità degli strumenti, impostazioni di lettura e licenze; modali dedicate alle modalità Automatico/Chitarra/Quartetto e a BPM, tap tempo, metro, griglia, primo battito, inseguimento e accordi.
+- `src/app.rs`, `src/score.rs`, `src/tablature.rs`: toolbar compatta per spartito, tablatura e impostazioni; eliminate informazioni su frequenza di campionamento, stereo e durata totale, intestazioni duplicate, suggerimenti permanenti ed esportazioni in linea; informazioni sulle note non assegnabili disponibili nel tooltip.
+- `src/runtime.rs`, `Cargo.toml`, `Cargo.lock`, `README.md`, `tools/package.ps1`: aggiornamento alla versione 0.3.0, documentazione dei nuovi controlli e adeguamento del pacchetto di distribuzione.
+
+### Note
+- Superati 56 test e Clippy con warning trattati come errori; verificato il clic reale egui sull'icona delle voci del menu, inclusi i comandi disabilitati. Gli screenshot definitivi confermano titoli a sinistra, icone allineate, righe del menu interamente cliccabili e le due modali.
+- La release pubblica 0.3.0 è in preparazione; questa voce non ne attesta ancora la pubblicazione.
+
+---
+
 ## 2026-10-13 — Transcriber! 0.2.0: Real Book, MIDI e accordi
 
 ### Richiesta
