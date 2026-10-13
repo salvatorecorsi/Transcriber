@@ -13,7 +13,8 @@ Ripulire e allineare l'interfaccia, sostituire i testi dei pulsanti con icone e 
 - `src/runtime.rs`, `Cargo.toml`, `Cargo.lock`, `README.md`, `tools/package.ps1`: aggiornamento alla versione 0.3.0, documentazione dei nuovi controlli e adeguamento del pacchetto di distribuzione.
 
 ### Note
-- Superati 56 test e Clippy con warning trattati come errori; verificato il clic reale egui sull'icona delle voci del menu, inclusi i comandi disabilitati. Gli screenshot definitivi confermano titoli a sinistra, icone allineate, righe del menu interamente cliccabili e le due modali.
+- Superati 58 test e Clippy con warning trattati come errori; verificato il clic reale egui sull'icona delle voci del menu, inclusi i comandi disabilitati. Gli screenshot definitivi confermano titoli a sinistra, icone allineate, righe del menu interamente cliccabili e le due modali.
+- Verificata la compatibilità delle scorciatoie I/O e dei salvataggi precedenti: gli estremi restano validi senza spostare l'ascolto e la normalizzazione delle vecchie impostazioni non viene interpretata come trascinamento né attiva il loop.
 - La release pubblica 0.3.0 è in preparazione; questa voce non ne attesta ancora la pubblicazione.
 
 ---

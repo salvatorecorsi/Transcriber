@@ -12,6 +12,7 @@ const MINIMUM_LOOP: f64 = 0.05;
 pub struct WaveformAction {
     pub seek: Option<f64>,
     pub loop_changed: bool,
+    pub loop_dragged: bool,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -102,6 +103,7 @@ pub fn show(
                 let delta = (pointer.x - drag.pointer_x) as f64 / rect.width().max(1.0) as f64
                     * drag.visible_duration;
                 let (start, end) = dragged_loop(drag, delta, duration);
+                action.loop_dragged = (start, end) != (*loop_start, *loop_end);
                 action.loop_changed |= (start, end) != (*loop_start, *loop_end);
                 (*loop_start, *loop_end) = (start, end);
             }
@@ -385,6 +387,42 @@ mod tests {
     }
 
     #[test]
+    fn normalizing_saved_boundaries_is_not_a_user_drag() {
+        let context = egui::Context::default();
+        let clip = AudioClip {
+            path: PathBuf::new(),
+            title: String::new(),
+            samples: Arc::new(Vec::new()),
+            sample_rate: 44100,
+            duration: 100.0,
+            waveform: vec![(-0.5, 0.5); 100],
+        };
+        let mut action = WaveformAction::default();
+        let mut view_start = 0.0;
+        let mut start = 60.0;
+        let mut end = 40.0;
+        let _ = context.run(egui::RawInput::default(), |context| {
+            egui::CentralPanel::default().show(context, |ui| {
+                action = show(
+                    ui,
+                    Some(&clip),
+                    0.0,
+                    1.0,
+                    &mut view_start,
+                    &mut start,
+                    &mut end,
+                    false,
+                );
+            });
+        });
+        assert!(action.loop_changed);
+        assert!(!action.loop_dragged);
+        assert!(action.seek.is_none());
+        assert!(start < end);
+        assert_eq!(end, 40.0);
+    }
+
+    #[test]
     fn dragging_a_marker_changes_the_loop_without_seeking() {
         let context = egui::Context::default();
         let clip = AudioClip {
@@ -452,6 +490,7 @@ mod tests {
             let moved = Pos2::new(start_pointer.x + 98.4, start_pointer.y);
             let action = render(vec![egui::Event::PointerMoved(moved)]).0;
             assert!(action.loop_changed);
+            assert!(action.loop_dragged);
             assert!(action.seek.is_none());
             let released = egui::Event::PointerButton {
                 pos: moved,
@@ -479,6 +518,7 @@ mod tests {
             let moved = Pos2::new(end_pointer.x + 49.2, end_pointer.y);
             let action = render(vec![egui::Event::PointerMoved(moved)]).0;
             assert!(action.loop_changed);
+            assert!(action.loop_dragged);
             assert!(action.seek.is_none());
             let released = egui::Event::PointerButton {
                 pos: moved,

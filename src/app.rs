@@ -509,11 +509,23 @@ impl TranscribeApp {
             self.seek(0.0);
         }
         if context.input(|input| input.key_pressed(egui::Key::I)) {
-            self.loop_start = position;
+            (self.loop_start, self.loop_end) = keyboard_loop_range(
+                self.loop_start,
+                self.loop_end,
+                position,
+                self.clip.as_ref().map_or(0.0, |clip| clip.duration),
+                true,
+            );
             self.update_loop();
         }
         if context.input(|input| input.key_pressed(egui::Key::O)) {
-            self.loop_end = position;
+            (self.loop_start, self.loop_end) = keyboard_loop_range(
+                self.loop_start,
+                self.loop_end,
+                position,
+                self.clip.as_ref().map_or(0.0, |clip| clip.duration),
+                false,
+            );
             self.loop_enabled = self.loop_end > self.loop_start;
             self.update_loop();
         }
@@ -890,7 +902,9 @@ impl TranscribeApp {
             self.loop_enabled,
         );
         if action.loop_changed {
-            self.loop_enabled = true;
+            if action.loop_dragged {
+                self.loop_enabled = true;
+            }
             self.update_loop();
         }
         if let Some(position) = action.seek {
@@ -1276,6 +1290,28 @@ fn default_chords_visible() -> bool {
     true
 }
 
+fn keyboard_loop_range(
+    start: f64,
+    end: f64,
+    position: f64,
+    duration: f64,
+    move_start: bool,
+) -> (f64, f64) {
+    let minimum_span = 0.05_f64.min(duration);
+    if move_start {
+        let start = position.clamp(0.0, duration - minimum_span);
+        let end = if end < start + minimum_span {
+            start + 15.0
+        } else {
+            end
+        };
+        (start, end.clamp(start + minimum_span, duration))
+    } else {
+        let end = position.clamp(minimum_span, duration);
+        (start.clamp(0.0, end - minimum_span), end)
+    }
+}
+
 fn menu_action(ui: &mut egui::Ui, icon: Icon, label: &str, enabled: bool) -> bool {
     ui.add_enabled_ui(enabled, |ui| {
         let (rect, response) =
@@ -1584,9 +1620,28 @@ pub fn run_command_line() -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{PracticeSettings, menu_action};
+    use super::{PracticeSettings, keyboard_loop_range, menu_action};
     use crate::design::Icon;
     use eframe::egui::{self, Pos2, Rect, Vec2};
+
+    #[test]
+    fn keyboard_markers_keep_the_requested_position_and_valid_loop() {
+        assert_eq!(
+            keyboard_loop_range(0.0, 15.0, 100.0, 200.0, true),
+            (100.0, 115.0)
+        );
+        assert_eq!(
+            keyboard_loop_range(100.0, 115.0, 110.0, 200.0, false),
+            (100.0, 110.0)
+        );
+        let (start, end) = keyboard_loop_range(100.0, 110.0, 50.0, 200.0, false);
+        assert_eq!(end, 50.0);
+        assert!(start < end);
+        assert_eq!(
+            keyboard_loop_range(0.0, 15.0, 200.0, 200.0, true),
+            (199.95, 200.0)
+        );
+    }
 
     #[test]
     fn menu_icon_click_runs_only_enabled_actions() {
