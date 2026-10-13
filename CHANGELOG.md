@@ -15,7 +15,7 @@ Ripulire e allineare l'interfaccia, sostituire i testi dei pulsanti con icone e 
 ### Note
 - Superati 58 test e Clippy con warning trattati come errori; verificato il clic reale egui sull'icona delle voci del menu, inclusi i comandi disabilitati. Gli screenshot definitivi confermano titoli a sinistra, icone allineate, righe del menu interamente cliccabili e le due modali.
 - Verificata la compatibilità delle scorciatoie I/O e dei salvataggi precedenti: gli estremi restano validi senza spostare l'ascolto e la normalizzazione delle vecchie impostazioni non viene interpretata come trascinamento né attiva il loop.
-- La release pubblica 0.3.0 è in preparazione; questa voce non ne attesta ancora la pubblicazione.
+- Pubblicata la release v0.3.0 su https://github.com/salvatorecorsi/Transcriber/releases/tag/v0.3.0, con eseguibile autonomo e ZIP completo; verificati tutti i download senza login e superata la build Windows su GitHub Actions.
 
 ---
 
