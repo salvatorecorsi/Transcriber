@@ -16,7 +16,7 @@ Rinominare l'applicazione Transcriber!, adottare una grafica bianca e nera ispir
 ### Note
 - Superati 51 test e Clippy con warning trattati come errori; verificata l'uscita MIDI reale tramite CPAL a 0,5×, con loop e anteprima che mantiene invariata la posizione.
 - Gli accordi sono stime basate su sovrapposizioni temporali stabili; la semplice presenza di più note non viene automaticamente interpretata come un accordo.
-- Creato il repository pubblico https://github.com/salvatorecorsi/Transcriber; pubblicazione dei sorgenti e della release ancora in preparazione. L'eseguibile incorpora font e sintetizzatore; la trascrizione richiede il motore AI installabile dall'app o incluso nel pacchetto completo.
+- Pubblicati i sorgenti e la release v0.2.0 su https://github.com/salvatorecorsi/Transcriber, con eseguibile autonomo e pacchetto ZIP completo scaricabili senza login. L'eseguibile incorpora font e sintetizzatore; la trascrizione richiede il motore AI installabile dall'app o incluso nel pacchetto completo.
 
 ---
 
