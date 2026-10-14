@@ -6,7 +6,7 @@ use crate::{
     },
     transcription::Note,
 };
-use eframe::egui::{self, Color32, FontId, Pos2, Rect, Sense, Stroke, Vec2};
+use eframe::egui::{self, Color32, Pos2, Rect, Sense, Stroke, Vec2};
 use std::{
     collections::BTreeMap,
     hash::{Hash, Hasher},
@@ -374,7 +374,7 @@ pub fn render_tablature(
             });
             ui.ctx()
                 .data_mut(|storage| storage.insert_temp(follow_id, follow_state));
-            let max_height = (ui.available_height() - 30.0).max(80.0);
+            let max_height = ui.available_height().max(80.0);
             egui::ScrollArea::both()
                 .id_salt("tablature_pages")
                 .max_width(available_width)
@@ -522,6 +522,18 @@ fn draw_row(
     let mut hits = Vec::new();
     let painter = ui.painter();
     let end_x = geometry.left + bars as f32 * geometry.width;
+    if playback_tick >= geometry.start as f64 && playback_tick < geometry.end as f64 {
+        let measure = ((playback_tick - geometry.start as f64) / geometry.bar_ticks as f64).floor();
+        let left = geometry.left + measure as f32 * geometry.width;
+        painter.rect_filled(
+            Rect::from_min_max(
+                Pos2::new(left, geometry.top - 44.0),
+                Pos2::new(left + geometry.width, geometry.bottom() + 31.0),
+            ),
+            0.0,
+            crate::design::BLUE.gamma_multiply(0.035),
+        );
+    }
     let staff_stroke = Stroke::new(0.75, crate::design::STAFF_COLOR);
     for (string, pitch) in tuning.iter().enumerate() {
         let y = geometry.y(string);
@@ -534,7 +546,7 @@ fn draw_row(
             Pos2::new(geometry.left - 32.0, y),
             egui::Align2::CENTER_CENTER,
             name,
-            FontId::proportional(15.0),
+            crate::design::jazz_font(15.0),
             ink,
         );
     }
@@ -551,7 +563,7 @@ fn draw_row(
             Pos2::new(x + 2.0, geometry.top - 36.0),
             egui::Align2::LEFT_CENTER,
             (first_bar + measure + 1).to_string(),
-            FontId::proportional(11.0),
+            crate::design::number_font(10.0),
             crate::design::STAFF_COLOR,
         );
         let measure_start = geometry.start + measure as i64 * geometry.bar_ticks;
@@ -597,9 +609,9 @@ fn draw_row(
                 Pos2::new(x, geometry.top - 15.0),
                 Pos2::new(x, geometry.bottom() + 10.0),
             ],
-            Stroke::new(1.2, ink),
+            Stroke::new(1.2, crate::design::BLUE),
         );
-        painter.circle_filled(Pos2::new(x, geometry.top - 18.0), 3.0, ink);
+        painter.circle_filled(Pos2::new(x, geometry.top - 18.0), 3.0, crate::design::BLUE);
     }
     let mut labels = Vec::new();
     let mut unknown: BTreeMap<i64, Vec<&TabSegment>> = BTreeMap::new();
@@ -615,7 +627,7 @@ fn draw_row(
         } else {
             position.fret.to_string()
         };
-        let galley = painter.layout_no_wrap(label, FontId::proportional(17.0), ink);
+        let galley = painter.layout_no_wrap(label, crate::design::jazz_font(17.0), ink);
         let (label_origin, label_rect) = tab_label_geometry(Pos2::new(x, y), galley.mesh_bounds);
         labels.push((label_rect, label_origin, galley));
         hits.push(NoteHit {
@@ -631,9 +643,9 @@ fn draw_row(
                 geometry.x(start as f64) + index as f32 * 14.0,
                 geometry.top - 17.0,
             );
-            let galley = ui
-                .painter()
-                .layout_no_wrap("?".into(), FontId::proportional(17.0), ink);
+            let galley =
+                ui.painter()
+                    .layout_no_wrap("?".into(), crate::design::jazz_font(17.0), ink);
             let (label_origin, marker) = tab_label_geometry(center, galley.mesh_bounds);
             labels.push((marker, label_origin, galley));
             hits.push(NoteHit {
@@ -691,6 +703,7 @@ mod tests {
     #[test]
     fn clicking_a_two_digit_fret_or_its_tied_repeat_previews_the_concert_pitch() {
         let context = egui::Context::default();
+        crate::design::configure(&context);
         let settings = ScoreSettings::default();
         let geometry = RowGeometry {
             start: 0,
@@ -832,6 +845,7 @@ mod tests {
     #[test]
     fn a_note_without_a_playable_fret_remains_auditionable() {
         let context = egui::Context::default();
+        crate::design::configure(&context);
         let settings = ScoreSettings::default();
         let geometry = RowGeometry {
             start: 0,

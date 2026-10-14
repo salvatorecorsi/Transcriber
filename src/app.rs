@@ -8,15 +8,15 @@ use crate::score::{self, ScoreSettings};
 use crate::tablature;
 use crate::transcription::{self, Note, Transcription, TranscriptionEvent};
 use crate::waveform;
-use eframe::egui::{self, Align, Align2, Color32, FontId, Pos2, RichText, Sense, Stroke, Vec2};
+use eframe::egui::{
+    self, Align, Align2, Color32, Pos2, Rect, RichText, Sense, Shape, Stroke, Vec2,
+};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, mpsc};
 use std::time::{Duration, Instant};
 
-const BACKGROUND: Color32 = Color32::WHITE;
-const PANEL: Color32 = Color32::WHITE;
-const TEXT: Color32 = Color32::BLACK;
+const TEXT: Color32 = design::INK;
 
 type LoadedAudio = Result<(AudioClip, f64), String>;
 
@@ -53,6 +53,7 @@ pub struct TranscribeApp {
     show_licenses: bool,
     show_instrument_settings: bool,
     show_score_settings: bool,
+    show_library: bool,
     preview_menu: bool,
     tablature: bool,
     clip: Option<AudioClip>,
@@ -71,6 +72,7 @@ pub struct TranscribeApp {
     loop_enabled: bool,
     waveform_zoom: f64,
     waveform_start: f64,
+    waveform_follow_reset: bool,
     conditioning: usize,
     progress: f32,
     status: String,
@@ -111,6 +113,7 @@ impl TranscribeApp {
             show_licenses: false,
             show_instrument_settings: preview == Some("instruments"),
             show_score_settings: preview == Some("reading"),
+            show_library: preview == Some("library"),
             preview_menu: preview == Some("menu"),
             tablature: false,
             clip: None,
@@ -129,6 +132,7 @@ impl TranscribeApp {
             loop_enabled: false,
             waveform_zoom: 1.0,
             waveform_start: 0.0,
+            waveform_follow_reset: false,
             conditioning: 0,
             progress: 0.0,
             status: "Pronto".into(),
@@ -231,6 +235,7 @@ impl TranscribeApp {
                     self.loop_enabled = false;
                     self.waveform_start = 0.0;
                     self.waveform_zoom = 1.0;
+                    self.waveform_follow_reset = true;
                     self.score_settings.bpm = bpm;
                     self.score_settings.offset = 0.0;
                     self.clip = Some(clip);
@@ -476,6 +481,7 @@ impl TranscribeApp {
     fn seek(&mut self, position: f64) {
         if let Some(player) = self.player.as_mut() {
             player.seek(position);
+            self.waveform_follow_reset = true;
         }
     }
 
@@ -488,6 +494,7 @@ impl TranscribeApp {
             || self.show_instrument_settings
             || self.show_score_settings
             || self.show_licenses
+            || self.show_library
             || self.loading
             || self.clip.is_none()
         {
@@ -547,60 +554,69 @@ impl TranscribeApp {
         }
     }
 
-    fn sidebar(&mut self, context: &egui::Context) {
-        egui::SidePanel::left("library")
-            .exact_width(244.0)
-            .resizable(false)
-            .frame(egui::Frame::new().fill(PANEL).inner_margin(22.0))
+    fn library_modal(&mut self, context: &egui::Context) {
+        if !self.show_library {
+            return;
+        }
+        let mut selected_path = None;
+        let mut browse = false;
+        let response = egui::Modal::new(egui::Id::new("audio_library"))
+            .frame(egui::Frame::popup(&context.style()).inner_margin(24.0))
             .show(context, |ui| {
-                ui.add_space(8.0);
-                ui.label(RichText::new("Transcriber!").size(31.0).color(TEXT));
-                ui.add_space(32.0);
-                ui.horizontal(|ui| {
-                    ui.label(RichText::new("Libreria").size(20.0));
-                    ui.with_layout(egui::Layout::right_to_left(Align::Center), |ui| {
-                        if design::icon_button(ui, Icon::Folder, "Apri audio", false).clicked() {
-                            self.open_audio_dialog();
-                        }
-                    });
-                });
-                ui.add_space(12.0);
-                for path in self.library.clone() {
-                    let selected = self.clip.as_ref().is_some_and(|clip| clip.path == path);
-                    let title = path.file_stem().unwrap_or_default().to_string_lossy();
-                    let response = ui.add_sized(
-                        [ui.available_width(), 48.0],
-                        design::button(&title).selected(selected).wrap(),
-                    );
-                    if response.clicked() && !selected && !self.loading {
-                        self.open_audio(path);
-                    }
-                }
-                ui.add_space(24.0);
-                ui.separator();
+                ui.set_width(480.0);
+                modal_heading(ui, "Le registrazioni");
                 ui.add_space(18.0);
-                ui.label(RichText::new("Parti").size(20.0));
-                ui.add_space(10.0);
-                let instruments = self.instruments();
-                if instruments.is_empty() {
-                    ui.label(RichText::new("Nessuna parte trascritta").size(13.0));
+                if self.library.is_empty() {
+                    ui.label(
+                        RichText::new("Apri un file audio per iniziare.").color(design::MUTED),
+                    );
+                } else {
+                    egui::ScrollArea::vertical()
+                        .max_height(360.0)
+                        .show(ui, |ui| {
+                            for path in &self.library {
+                                let selected =
+                                    self.clip.as_ref().is_some_and(|clip| &clip.path == path);
+                                let title = path.file_stem().unwrap_or_default().to_string_lossy();
+                                let response = ui
+                                    .add_enabled(
+                                        !self.loading,
+                                        egui::Button::new(RichText::new(title.as_ref()).color(
+                                            if selected { design::BLUE } else { design::INK },
+                                        ))
+                                        .fill(if selected {
+                                            design::PAPER
+                                        } else {
+                                            design::WHITE
+                                        })
+                                        .stroke(Stroke::NONE)
+                                        .corner_radius(6.0)
+                                        .min_size(Vec2::new(ui.available_width(), 42.0))
+                                        .wrap(),
+                                    )
+                                    .on_hover_text(path.to_string_lossy());
+                                if response.clicked() {
+                                    selected_path = Some(path.clone());
+                                }
+                            }
+                        });
                 }
-                for (program, drums, _) in instruments {
-                    let selected = self.selected_instrument == Some((program, drums));
-                    let name = score::instrument_name(program, drums);
-                    let label =
-                        RichText::new(name).color(if selected { Color32::WHITE } else { TEXT });
-                    if ui
-                        .add_sized(
-                            [ui.available_width(), 36.0],
-                            egui::Button::new(label).selected(selected),
-                        )
-                        .clicked()
-                    {
-                        self.selected_instrument = Some((program, drums));
-                    }
-                }
+                ui.add_space(18.0);
+                browse = ui
+                    .add_enabled(!self.loading, design::button("Apri file audio…"))
+                    .clicked();
             });
+        if response.should_close() || selected_path.is_some() || browse {
+            self.show_library = false;
+        }
+        if let Some(path) = selected_path
+            && self.clip.as_ref().is_none_or(|clip| clip.path != path)
+        {
+            self.open_audio(path);
+        }
+        if browse {
+            self.open_audio_dialog();
+        }
     }
 
     fn transport(&mut self, context: &egui::Context) {
@@ -614,174 +630,310 @@ impl TranscribeApp {
                 | "Motore AI installato. Puoi trascrivere l'audio."
         );
         let show_status = active || !idle_status;
+        let wide = context.content_rect().width() >= 1250.0;
+        let height = if wide { 94.0 } else { 139.0 } + if show_status { 38.0 } else { 0.0 };
         egui::TopBottomPanel::bottom("transport")
-            .exact_height(if self.busy || self.installing {
-                120.0
-            } else if show_status {
-                100.0
-            } else {
-                68.0
-            })
+            .exact_height(height)
             .frame(
                 egui::Frame::new()
-                    .fill(PANEL)
-                    .inner_margin(egui::Margin::symmetric(30, 16)),
+                    .fill(design::PAPER)
+                    .inner_margin(egui::Margin::symmetric(32, 15)),
             )
             .show(context, |ui| {
-                ui.horizontal(|ui| {
-                    let playing = self.player.as_ref().is_some_and(AudioPlayer::is_playing);
-                    let enabled = self.clip.is_some() && self.player.is_some();
-                    ui.add_enabled_ui(enabled, |ui| {
-                        if design::icon_button(
-                            ui,
-                            Icon::Backward,
-                            "Indietro di 5 secondi · ←",
-                            false,
-                        )
-                        .clicked()
-                        {
-                            self.seek((self.position() - 5.0).max(0.0));
-                        }
-                        if design::icon_button(
-                            ui,
-                            if playing { Icon::Pause } else { Icon::Play },
-                            if playing {
-                                "Pausa · Spazio"
-                            } else {
-                                "Riproduci · Spazio"
-                            },
-                            false,
-                        )
-                        .clicked()
-                            && let Some(player) = self.player.as_mut()
-                        {
-                            player.toggle();
-                        }
-                        if design::icon_button(ui, Icon::Forward, "Avanti di 5 secondi · →", false)
-                            .clicked()
-                        {
-                            self.seek(self.position() + 5.0);
-                        }
-                    });
-                    ui.add_space(10.0);
-                    ui.add_sized(
-                        [98.0, 36.0],
-                        egui::Label::new(
-                            RichText::new(time_label(self.position()))
-                                .size(23.0)
-                                .monospace(),
-                        ),
-                    );
-                    ui.add_space(12.0);
-                    if design::icon_button(
-                        ui,
-                        Icon::Audio,
-                        "Ascolta la registrazione",
-                        !self.midi_mode,
-                    )
-                    .clicked()
-                    {
-                        self.midi_mode = false;
-                        if let Some(player) = self.player.as_mut() {
-                            player.set_midi_mode(false);
-                        }
-                    }
-                    ui.add_enabled_ui(
-                        self.selected_instrument.is_some() && self.player.is_some(),
-                        |ui| {
-                            if design::icon_button(
-                                ui,
-                                Icon::Midi,
-                                "Ascolta la parte in MIDI",
-                                self.midi_mode,
-                            )
-                            .clicked()
-                            {
-                                self.midi_mode = true;
-                                if let Some(player) = self.player.as_mut() {
-                                    player.set_midi_mode(true);
-                                }
-                            }
-                        },
-                    );
-                    ui.add_space(18.0);
-                    design::icon_label(ui, Icon::Speed, "Velocità · intonazione invariata");
-                    ui.scope(|ui| {
-                        ui.spacing_mut().slider_width = 130.0;
-                        if design::slider(
-                            ui,
-                            egui::Slider::new(&mut self.speed, 0.25..=1.5)
-                                .step_by(0.05)
-                                .show_value(false),
-                        )
-                        .changed()
-                            && let Some(player) = self.player.as_mut()
-                        {
-                            player.set_speed(self.speed);
-                        }
-                    });
-                    let speed = ui
-                        .add_sized(
-                            [64.0, 36.0],
-                            egui::DragValue::new(&mut self.speed)
-                                .range(0.25..=1.5)
-                                .speed(0.01)
-                                .suffix("×")
-                                .fixed_decimals(2),
-                        )
-                        .on_hover_text("Velocità di riproduzione");
-                    if speed.changed()
-                        && let Some(player) = self.player.as_mut()
-                    {
-                        player.set_speed(self.speed);
-                    }
-                    ui.with_layout(egui::Layout::right_to_left(Align::Center), |ui| {
-                        ui.scope(|ui| {
-                            ui.spacing_mut().slider_width = 110.0;
-                            if design::slider(
-                                ui,
-                                egui::Slider::new(&mut self.volume, 0.0..=1.0).show_value(false),
-                            )
-                            .changed()
-                                && let Some(player) = self.player.as_mut()
-                            {
-                                player.set_volume(self.volume);
+                let rect = workstation_rect(ui.available_rect_before_wrap());
+                ui.scope_builder(egui::UiBuilder::new().max_rect(rect), |ui| {
+                    ui.spacing_mut().item_spacing = Vec2::new(13.0, 10.0);
+                    if wide {
+                        ui.horizontal(|ui| {
+                            self.playback_controls(ui);
+                            ui.add_space(8.0);
+                            self.position_readout(ui);
+                            ui.add_space(8.0);
+                            self.speed_controls(ui, true);
+                            ui.with_layout(egui::Layout::right_to_left(Align::Center), |ui| {
+                                self.volume_control(ui, 82.0);
+                                ui.add_space(10.0);
+                                self.source_controls(ui);
+                            });
+                        });
+                    } else {
+                        ui.horizontal(|ui| {
+                            self.playback_controls(ui);
+                            ui.add_space(10.0);
+                            self.position_readout(ui);
+                            if rect.width() >= 720.0 {
+                                ui.with_layout(egui::Layout::right_to_left(Align::Center), |ui| {
+                                    self.source_controls(ui);
+                                });
                             }
                         });
-                        design::icon_label(ui, Icon::Volume, "Volume");
-                    });
-                });
-                if show_status {
-                    ui.add_space(6.0);
-                    ui.horizontal(|ui| {
-                        ui.label(RichText::new(&self.status).size(12.0));
-                        if self.busy || self.installing {
-                            ui.add(
-                                egui::ProgressBar::new(self.progress)
-                                    .desired_width(150.0)
-                                    .show_percentage(),
-                            );
-                            if design::icon_button(ui, Icon::Cancel, "Annulla", false).clicked() {
-                                if self.installing {
-                                    self.install_cancelled.store(true, Ordering::Relaxed);
-                                } else {
-                                    self.cancelled.store(true, Ordering::Relaxed);
+                        ui.horizontal(|ui| {
+                            self.speed_controls(ui, true);
+                            ui.with_layout(egui::Layout::right_to_left(Align::Center), |ui| {
+                                self.volume_control(ui, 72.0);
+                                if rect.width() < 720.0 {
+                                    self.source_controls(ui);
                                 }
-                                self.status = "Annullamento...".into();
+                            });
+                        });
+                    }
+                    if show_status {
+                        ui.add_space(4.0);
+                        ui.horizontal(|ui| {
+                            ui.label(RichText::new(&self.status).size(12.0).color(design::MUTED));
+                            if self.busy || self.installing {
+                                ui.add(
+                                    egui::ProgressBar::new(self.progress)
+                                        .desired_width(150.0)
+                                        .show_percentage(),
+                                );
+                                if design::round_icon_button(
+                                    ui,
+                                    Icon::Cancel,
+                                    "Annulla",
+                                    false,
+                                    28.0,
+                                )
+                                .clicked()
+                                {
+                                    if self.installing {
+                                        self.install_cancelled.store(true, Ordering::Relaxed);
+                                    } else {
+                                        self.cancelled.store(true, Ordering::Relaxed);
+                                    }
+                                    self.status = "Annullamento...".into();
+                                }
                             }
-                        }
-                        if self.player.as_ref().is_some_and(AudioPlayer::is_processing) {
-                            ui.spinner();
-                        }
-                    });
-                }
+                            if self.player.as_ref().is_some_and(AudioPlayer::is_processing) {
+                                ui.spinner();
+                            }
+                        });
+                    }
+                });
             });
     }
 
-    fn header(&mut self, ui: &mut egui::Ui) {
+    fn playback_controls(&mut self, ui: &mut egui::Ui) {
+        let playing = self.player.as_ref().is_some_and(AudioPlayer::is_playing);
+        ui.add_enabled_ui(self.clip.is_some() && self.player.is_some(), |ui| {
+            ui.horizontal(|ui| {
+                ui.spacing_mut().item_spacing.x = 3.0;
+                if design::round_icon_button(
+                    ui,
+                    if playing { Icon::Pause } else { Icon::Play },
+                    if playing {
+                        "Pausa · Spazio"
+                    } else {
+                        "Riproduci · Spazio"
+                    },
+                    false,
+                    51.0,
+                )
+                .clicked()
+                    && let Some(player) = self.player.as_mut()
+                {
+                    player.toggle();
+                }
+                ui.add_space(5.0);
+                if design::round_icon_button(
+                    ui,
+                    Icon::Backward,
+                    "Indietro di 5 secondi · ←",
+                    false,
+                    36.0,
+                )
+                .clicked()
+                {
+                    self.seek((self.position() - 5.0).max(0.0));
+                }
+                if design::round_icon_button(
+                    ui,
+                    Icon::Forward,
+                    "Avanti di 5 secondi · →",
+                    false,
+                    36.0,
+                )
+                .clicked()
+                {
+                    self.seek(self.position() + 5.0);
+                }
+                if design::round_icon_button(
+                    ui,
+                    Icon::Repeat,
+                    "Ripeti selezione · L",
+                    self.loop_enabled,
+                    36.0,
+                )
+                .clicked()
+                {
+                    self.loop_enabled = !self.loop_enabled;
+                    self.update_loop();
+                }
+            });
+        });
+    }
+
+    fn position_readout(&self, ui: &mut egui::Ui) {
+        ui.add_sized(
+            [136.0, 51.0],
+            egui::Label::new(
+                RichText::new(time_label(self.position()))
+                    .font(design::number_font(25.0))
+                    .color(design::INK),
+            ),
+        );
+    }
+
+    fn speed_controls(&mut self, ui: &mut egui::Ui, slider_visible: bool) {
         ui.horizontal(|ui| {
-            ui.with_layout(egui::Layout::right_to_left(Align::Center), |ui| {
-                let menu_button = design::icon_button(ui, Icon::Menu, "Menu", false);
+            ui.spacing_mut().item_spacing.x = 7.0;
+            ui.label(RichText::new("Velocità").size(10.0).color(design::MUTED));
+            let previous = self.speed;
+            if slider_visible {
+                ui.scope(|ui| {
+                    ui.spacing_mut().slider_width = 94.0;
+                    design::slider(
+                        ui,
+                        egui::Slider::new(&mut self.speed, 0.25..=1.5)
+                            .step_by(0.05)
+                            .show_value(false),
+                    )
+                    .on_hover_text("Velocità · intonazione invariata");
+                });
+            }
+            ui.scope(|ui| {
+                ui.style_mut().override_font_id = Some(design::number_font(12.0));
+                ui.add_sized(
+                    [56.0, 30.0],
+                    egui::DragValue::new(&mut self.speed)
+                        .range(0.25..=1.5)
+                        .speed(0.01)
+                        .suffix("×")
+                        .fixed_decimals(2),
+                )
+                .on_hover_text("Velocità di riproduzione");
+            });
+            egui::Frame::new()
+                .fill(design::WHITE)
+                .corner_radius(7.0)
+                .inner_margin(3.0)
+                .show(ui, |ui| {
+                    ui.horizontal(|ui| {
+                        ui.spacing_mut().item_spacing.x = 2.0;
+                        for (speed, label) in [(0.5, "½×"), (0.75, "¾×"), (1.0, "1×")] {
+                            let selected = (self.speed - speed).abs() < 0.005;
+                            if ui
+                                .add_sized(
+                                    [36.0, 28.0],
+                                    egui::Button::new(
+                                        RichText::new(label).font(design::number_font(12.0)).color(
+                                            if selected {
+                                                design::WHITE
+                                            } else {
+                                                design::MUTED
+                                            },
+                                        ),
+                                    )
+                                    .fill(if selected {
+                                        design::BLUE
+                                    } else {
+                                        design::WHITE
+                                    })
+                                    .stroke(Stroke::NONE)
+                                    .corner_radius(5.0),
+                                )
+                                .clicked()
+                            {
+                                self.speed = speed;
+                            }
+                        }
+                    });
+                });
+            if (self.speed - previous).abs() > f32::EPSILON
+                && let Some(player) = self.player.as_mut()
+            {
+                player.set_speed(self.speed);
+            }
+        });
+    }
+
+    fn source_controls(&mut self, ui: &mut egui::Ui) {
+        ui.allocate_ui_with_layout(
+            Vec2::new(165.0, 36.0),
+            egui::Layout::left_to_right(Align::Center),
+            |ui| {
+                ui.spacing_mut().item_spacing.x = 4.0;
+                if design::tab_button(ui, Icon::Audio, "Audio", !self.midi_mode).clicked() {
+                    self.midi_mode = false;
+                    if let Some(player) = self.player.as_mut() {
+                        player.set_midi_mode(false);
+                    }
+                }
+                ui.add_enabled_ui(
+                    self.selected_instrument.is_some() && self.player.is_some(),
+                    |ui| {
+                        if design::tab_button(ui, Icon::Midi, "MIDI", self.midi_mode).clicked() {
+                            self.midi_mode = true;
+                            if let Some(player) = self.player.as_mut() {
+                                player.set_midi_mode(true);
+                            }
+                        }
+                    },
+                );
+            },
+        );
+    }
+
+    fn volume_control(&mut self, ui: &mut egui::Ui, width: f32) {
+        ui.allocate_ui_with_layout(
+            Vec2::new(width + 29.0, 36.0),
+            egui::Layout::left_to_right(Align::Center),
+            |ui| {
+                ui.spacing_mut().item_spacing.x = 7.0;
+                design::icon_label(ui, Icon::Volume, "Volume");
+                ui.scope(|ui| {
+                    ui.spacing_mut().slider_width = width;
+                    if design::slider(
+                        ui,
+                        egui::Slider::new(&mut self.volume, 0.0..=1.0).show_value(false),
+                    )
+                    .changed()
+                        && let Some(player) = self.player.as_mut()
+                    {
+                        player.set_volume(self.volume);
+                    }
+                });
+            },
+        );
+    }
+
+    fn header(&mut self, ui: &mut egui::Ui) {
+        let (rect, _) =
+            ui.allocate_exact_size(Vec2::new(ui.available_width(), 49.0), Sense::hover());
+        let wordmark = ui.painter().layout_no_wrap(
+            "Transcriber".into(),
+            design::strong_font(26.0),
+            design::INK,
+        );
+        let origin = Pos2::new(rect.left(), rect.center().y - wordmark.size().y * 0.5);
+        let mark_position = origin + Vec2::new(wordmark.size().x, 0.0);
+        ui.painter().galley(origin, wordmark, design::INK);
+        ui.painter().text(
+            mark_position,
+            Align2::LEFT_TOP,
+            "!",
+            design::strong_font(26.0),
+            design::BLUE,
+        );
+        ui.scope_builder(
+            egui::UiBuilder::new()
+                .max_rect(Rect::from_min_max(
+                    Pos2::new(rect.right() - 92.0, rect.top()),
+                    rect.right_bottom(),
+                ))
+                .layout(egui::Layout::right_to_left(Align::Center)),
+            |ui| {
+                let menu_button = design::round_icon_button(ui, Icon::Menu, "Menu", false, 40.0);
                 if self.preview_menu {
                     egui::Popup::open_id(ui.ctx(), egui::Popup::default_response_id(&menu_button));
                     self.preview_menu = false;
@@ -789,14 +941,229 @@ impl TranscribeApp {
                 egui::Popup::menu(&menu_button)
                     .width(280.0)
                     .show(|ui| self.action_menu(ui));
-                let title = self
-                    .clip
-                    .as_ref()
-                    .map_or("Il tuo prossimo ascolto", |clip| clip.title.as_str());
-                left_heading(ui, title, 31.0, 42.0);
-            });
+                ui.add_space(4.0);
+                if design::round_icon_button(ui, Icon::Folder, "Apri audio e libreria", false, 40.0)
+                    .clicked()
+                {
+                    self.show_library = true;
+                }
+            },
+        );
+        ui.painter().line_segment(
+            [
+                rect.left_bottom() + Vec2::new(0.0, 8.0),
+                rect.right_bottom() + Vec2::new(0.0, 8.0),
+            ],
+            Stroke::new(1.0, Color32::from_gray(214)),
+        );
+        ui.add_space(if ui.ctx().content_rect().height() < 800.0 {
+            16.0
+        } else {
+            28.0
         });
-        ui.add_space(14.0);
+        self.session_heading(ui);
+    }
+
+    fn session_heading(&mut self, ui: &mut egui::Ui) {
+        let compact = ui.ctx().content_rect().height() < 800.0;
+        let separate_selector = ui.available_width() < 790.0;
+        let title_height = if compact { 92.0 } else { 113.0 };
+        let (rect, _) = ui.allocate_exact_size(
+            Vec2::new(
+                ui.available_width(),
+                if separate_selector {
+                    149.0
+                } else {
+                    title_height
+                },
+            ),
+            Sense::hover(),
+        );
+        let title = self
+            .clip
+            .as_ref()
+            .map_or("Il tuo prossimo ascolto", |clip| clip.title.as_str());
+        let title_width = if separate_selector {
+            rect.width()
+        } else {
+            (rect.width() - 274.0).max(200.0)
+        };
+        let title_rect = Rect::from_min_size(
+            rect.min,
+            Vec2::new(
+                title_width,
+                if separate_selector {
+                    90.0
+                } else {
+                    title_height
+                },
+            ),
+        );
+        ui.interact(title_rect, ui.id().with("recording_title"), Sense::hover())
+            .on_hover_text(self.clip.as_ref().map_or_else(
+                || title.to_owned(),
+                |clip| clip.path.to_string_lossy().into_owned(),
+            ));
+        let mut title_size = if !compact && rect.width() > 1100.0 {
+            52.0
+        } else {
+            43.0
+        };
+        let mut heading = ui.painter().layout_no_wrap(
+            title.into(),
+            design::display_font(title_size),
+            design::INK,
+        );
+        while heading.size().x > title_width - 4.0 && title_size > 26.0 {
+            title_size -= 1.0;
+            heading = ui.painter().layout_no_wrap(
+                title.into(),
+                design::display_font(title_size),
+                design::INK,
+            );
+        }
+        if heading.size().x > title_width - 4.0 {
+            let mut visible_title = title.to_owned();
+            while visible_title.pop().is_some() {
+                heading = ui.painter().layout_no_wrap(
+                    format!("{visible_title}…"),
+                    design::display_font(title_size),
+                    design::INK,
+                );
+                if heading.size().x <= title_width - 4.0 {
+                    break;
+                }
+            }
+        }
+        let paper_rect = Rect::from_min_size(
+            title_rect.min,
+            Vec2::new(
+                (heading.size().x + 14.0).max(104.0).min(title_width),
+                (32.0 + heading.size().y + 8.0).min(title_rect.height()),
+            ),
+        );
+        design::paint_paper(ui.painter(), paper_rect.intersect(rect));
+        let label_rect =
+            Rect::from_min_size(title_rect.min + Vec2::new(2.0, 5.0), Vec2::new(90.0, 23.0));
+        ui.painter().add(Shape::convex_polygon(
+            vec![
+                label_rect.left_top() + Vec2::new(0.0, 1.0),
+                label_rect.right_top() + Vec2::new(-2.0, -1.0),
+                label_rect.right_bottom(),
+                label_rect.left_bottom() + Vec2::new(1.0, 2.0),
+            ],
+            design::INK,
+            Stroke::NONE,
+        ));
+        ui.painter().text(
+            label_rect.center(),
+            Align2::CENTER_CENTER,
+            "Registrazione",
+            egui::FontId::proportional(11.0),
+            design::WHITE,
+        );
+        let title_painter = ui
+            .painter()
+            .with_clip_rect(title_rect.intersect(ui.clip_rect()));
+        let heading_origin = title_rect.min + Vec2::new(0.0, 32.0);
+        let underline_width = (heading.size().x * 0.3).min(148.0);
+        let underline_left = heading_origin.x + heading.size().x - underline_width;
+        let underline_top = heading_origin.y + heading.size().y - 9.0;
+        title_painter.add(Shape::convex_polygon(
+            vec![
+                Pos2::new(underline_left - 2.0, underline_top + 2.0),
+                Pos2::new(underline_left + underline_width + 4.0, underline_top),
+                Pos2::new(underline_left + underline_width + 6.0, underline_top + 7.0),
+                Pos2::new(underline_left, underline_top + 9.0),
+            ],
+            design::CORAL,
+            Stroke::NONE,
+        ));
+        title_painter.galley(heading_origin, heading, design::INK);
+        let selector_rect = if separate_selector {
+            Rect::from_min_size(rect.min + Vec2::new(0.0, 94.0), Vec2::new(244.0, 48.0))
+        } else {
+            Rect::from_min_size(
+                Pos2::new(rect.right() - 244.0, rect.top() + 23.0),
+                Vec2::new(244.0, 60.0),
+            )
+        };
+        self.part_selector(ui, selector_rect);
+    }
+
+    fn part_selector(&mut self, ui: &mut egui::Ui, rect: Rect) {
+        let instruments = self.instruments();
+        let response = ui.interact(
+            rect,
+            ui.id().with("selected_part"),
+            if instruments.is_empty() {
+                Sense::hover()
+            } else {
+                Sense::click()
+            },
+        );
+        ui.painter().rect_filled(rect, 8.0, design::WHITE);
+        ui.painter().circle_filled(
+            Pos2::new(rect.left() + 27.0, rect.center().y),
+            17.0,
+            design::PAPER,
+        );
+        let mut symbol = ui.new_child(egui::UiBuilder::new().max_rect(Rect::from_center_size(
+            Pos2::new(rect.left() + 27.0, rect.center().y),
+            Vec2::splat(22.0),
+        )));
+        design::icon_label(&mut symbol, Icon::Score, "Parte visualizzata");
+        ui.painter().text(
+            Pos2::new(rect.left() + 54.0, rect.center().y - 12.0),
+            Align2::LEFT_CENTER,
+            "Parte",
+            egui::FontId::proportional(10.0),
+            design::MUTED,
+        );
+        let name = self
+            .selected_instrument
+            .map_or("Nessuna parte trascritta", |(program, drums)| {
+                score::instrument_name(program, drums)
+            });
+        ui.painter().text(
+            Pos2::new(rect.left() + 54.0, rect.center().y + 7.0),
+            Align2::LEFT_CENTER,
+            name,
+            egui::FontId::proportional(14.0),
+            design::INK,
+        );
+        ui.painter().add(Shape::line(
+            vec![
+                Pos2::new(rect.right() - 22.0, rect.center().y - 2.0),
+                Pos2::new(rect.right() - 17.0, rect.center().y + 3.0),
+                Pos2::new(rect.right() - 12.0, rect.center().y - 2.0),
+            ],
+            Stroke::new(1.5, design::INK),
+        ));
+        response.widget_info(|| {
+            egui::WidgetInfo::labeled(egui::WidgetType::ComboBox, !instruments.is_empty(), name)
+        });
+        egui::Popup::menu(&response).width(260.0).show(|ui| {
+            for (program, drums, _) in instruments {
+                if ui
+                    .selectable_value(
+                        &mut self.selected_instrument,
+                        Some((program, drums)),
+                        score::instrument_name(program, drums),
+                    )
+                    .clicked()
+                {
+                    ui.close();
+                }
+            }
+        });
+        response
+            .on_hover_text("Scegli la parte da leggere e ascoltare in MIDI")
+            .on_hover_cursor(if self.selected_instrument.is_some() {
+                egui::CursorIcon::PointingHand
+            } else {
+                egui::CursorIcon::Default
+            });
     }
 
     fn action_menu(&mut self, ui: &mut egui::Ui) {
@@ -850,56 +1217,30 @@ impl TranscribeApp {
         }
     }
 
-    fn change_waveform_zoom(&mut self, zoom: f64) {
-        self.waveform_zoom = zoom.clamp(1.0, 16.0);
-        if let Some(clip) = &self.clip {
-            let window = clip.duration / self.waveform_zoom;
-            self.waveform_start =
-                (self.position() - window * 0.25).clamp(0.0, (clip.duration - window).max(0.0));
-        }
-    }
-
     fn waveform(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
+            ui.label(RichText::new("La registrazione").size(12.0));
             ui.with_layout(egui::Layout::right_to_left(Align::Center), |ui| {
-                ui.add_enabled_ui(self.clip.is_some(), |ui| {
-                    if design::icon_button(
-                        ui,
-                        Icon::Repeat,
-                        "Ripeti selezione · L",
-                        self.loop_enabled,
-                    )
-                    .clicked()
-                    {
-                        self.loop_enabled = !self.loop_enabled;
-                        self.update_loop();
-                    }
-                    if design::icon_button(ui, Icon::ZoomIn, "Ingrandisci waveform", false)
-                        .clicked()
-                    {
-                        self.change_waveform_zoom(self.waveform_zoom * 2.0);
-                    }
-                    if design::icon_button(ui, Icon::Fit, "Mostra tutto il brano", false).clicked()
-                    {
-                        self.change_waveform_zoom(1.0);
-                    }
-                    if design::icon_button(ui, Icon::ZoomOut, "Riduci waveform", false).clicked() {
-                        self.change_waveform_zoom(self.waveform_zoom * 0.5);
-                    }
-                });
+                ui.label(
+                    RichText::new(format!("{:.1}×", self.waveform_zoom))
+                        .font(design::number_font(11.0))
+                        .color(design::MUTED),
+                )
+                .on_hover_text("Zoom: Ctrl + rotella · trascina per spostarti nel brano");
             });
         });
-        ui.add_space(10.0);
+        ui.add_space(2.0);
         let position = self.position();
         let action = waveform::show(
             ui,
             self.clip.as_ref(),
             position,
-            self.waveform_zoom,
+            &mut self.waveform_zoom,
             &mut self.waveform_start,
             &mut self.loop_start,
             &mut self.loop_end,
             self.loop_enabled,
+            std::mem::take(&mut self.waveform_follow_reset),
         );
         if action.loop_changed {
             if action.loop_dragged {
@@ -909,66 +1250,75 @@ impl TranscribeApp {
         }
         if let Some(position) = action.seek {
             self.seek(position);
+            self.waveform_follow_reset = false;
         }
+        ui.add_space(if ui.ctx().content_rect().height() < 800.0 {
+            10.0
+        } else {
+            17.0
+        });
     }
 
     fn score_panel(&mut self, ui: &mut egui::Ui) {
         let notes = self.selected_notes();
         let tablature_supported = tablature::supports_tablature(&notes);
         let show_tablature = self.tablature && tablature_supported;
-        ui.add_space(24.0);
-        ui.horizontal(|ui| {
-            ui.with_layout(egui::Layout::right_to_left(Align::Center), |ui| {
-                if design::icon_button(ui, Icon::Settings, "Impostazioni di lettura", false)
-                    .clicked()
-                {
-                    self.show_score_settings = true;
-                }
-                ui.add_enabled_ui(tablature_supported, |ui| {
-                    if design::icon_button(ui, Icon::Tablature, "Tablatura", show_tablature)
-                        .clicked()
-                    {
-                        self.tablature = true;
-                    }
-                });
-                if design::icon_button(ui, Icon::Score, "Spartito", !show_tablature).clicked() {
-                    self.tablature = false;
-                }
-                let title = self.selected_instrument.map_or_else(
-                    || "Trascrizione",
-                    |(program, drums)| score::instrument_name(program, drums),
-                );
-                left_heading(ui, title, 23.0, 36.0);
-            });
-        });
-        ui.add_space(14.0);
+        let (rect, _) = ui.allocate_exact_size(
+            Vec2::new(ui.available_width(), ui.available_height().max(130.0)),
+            Sense::hover(),
+        );
+        let painter = ui.painter_at(rect.expand2(Vec2::new(0.0, 5.0)));
+        painter.rect_filled(
+            rect.translate(Vec2::new(0.0, 4.0))
+                .shrink2(Vec2::new(1.0, 0.0)),
+            0.0,
+            Color32::from_gray(230),
+        );
+        painter.rect_filled(
+            rect.translate(Vec2::new(0.0, 3.0))
+                .shrink2(Vec2::new(1.0, 0.0)),
+            0.0,
+            design::WHITE,
+        );
+        painter.rect_filled(rect, 0.0, design::WHITE);
+        let inner_rect = rect.shrink2(Vec2::new(16.0, 7.0));
+        let mut paper = ui.new_child(
+            egui::UiBuilder::new()
+                .max_rect(inner_rect)
+                .layout(egui::Layout::top_down(Align::Min)),
+        );
+        paper.set_clip_rect(rect);
+        self.score_toolbar(&mut paper, tablature_supported, show_tablature);
+        paper.add_space(6.0);
         let position = self.position();
         if notes.is_empty() {
-            let (rect, _) = ui.allocate_exact_size(
-                Vec2::new(ui.available_width(), ui.available_height().max(180.0)),
-                Sense::hover(),
-            );
-            let painter = ui.painter_at(rect);
+            let empty_rect = paper.available_rect_before_wrap();
             for index in 0..5 {
-                let y = rect.center().y - 32.0 + index as f32 * 12.0;
+                let y = empty_rect.center().y - 18.0 + index as f32 * 10.0;
                 painter.line_segment(
                     [
-                        Pos2::new(rect.left() + 30.0, y),
-                        Pos2::new(rect.right() - 30.0, y),
+                        Pos2::new(empty_rect.left() + 34.0, y),
+                        Pos2::new(empty_rect.right() - 34.0, y),
                     ],
                     Stroke::new(0.7, design::STAFF_COLOR),
                 );
             }
-            painter.text(
-                rect.center(),
-                Align2::CENTER_CENTER,
-                if self.busy {
-                    "La trascrizione è in corso"
-                } else {
-                    "Dall'ascolto alla pagina."
-                },
-                FontId::proportional(27.0),
-                Color32::BLACK,
+            let message = if self.busy {
+                "La trascrizione è in corso"
+            } else if self.clip.is_none() {
+                "Un ascolto. Una pagina nuova."
+            } else {
+                "Dall'ascolto alla pagina."
+            };
+            let caption =
+                painter.layout_no_wrap(message.into(), design::display_font(27.0), design::INK);
+            let caption_rect =
+                Rect::from_center_size(empty_rect.center(), caption.size() + Vec2::new(28.0, 14.0));
+            painter.rect_filled(caption_rect, 0.0, design::WHITE);
+            painter.galley(
+                empty_rect.center() - caption.size() * 0.5,
+                caption,
+                design::INK,
             );
         } else {
             let chords = if self.show_chords {
@@ -977,9 +1327,15 @@ impl TranscribeApp {
                 &[]
             };
             let action = if show_tablature {
-                tablature::render_tablature(ui, &notes, &self.score_settings, position, chords)
+                tablature::render_tablature(
+                    &mut paper,
+                    &notes,
+                    &self.score_settings,
+                    position,
+                    chords,
+                )
             } else {
-                score::render_score(ui, &notes, &self.score_settings, position, chords)
+                score::render_score(&mut paper, &notes, &self.score_settings, position, chords)
             };
             match action {
                 Some(score::NotationAction::Seek(seconds)) => self.seek(seconds),
@@ -992,6 +1348,119 @@ impl TranscribeApp {
                 None => {}
             }
         }
+        let fold = 15.0;
+        painter.add(Shape::convex_polygon(
+            vec![
+                Pos2::new(rect.right() - fold, rect.bottom()),
+                rect.right_bottom(),
+                Pos2::new(rect.right(), rect.bottom() - fold),
+            ],
+            design::PAPER,
+            Stroke::NONE,
+        ));
+        painter.line_segment(
+            [
+                Pos2::new(rect.right() - fold, rect.bottom()),
+                Pos2::new(rect.right(), rect.bottom() - fold),
+            ],
+            Stroke::new(1.0, Color32::from_gray(226)),
+        );
+    }
+
+    fn score_toolbar(
+        &mut self,
+        ui: &mut egui::Ui,
+        tablature_supported: bool,
+        show_tablature: bool,
+    ) {
+        let narrow = ui.available_width() < 620.0;
+        ui.allocate_ui_with_layout(
+            Vec2::new(ui.available_width(), if narrow { 86.0 } else { 48.0 }),
+            egui::Layout::top_down(Align::Min),
+            |ui| {
+                ui.horizontal(|ui| {
+                    ui.spacing_mut().item_spacing.x = 5.0;
+                    if design::tab_button(ui, Icon::Score, "Spartito", !show_tablature).clicked() {
+                        self.tablature = false;
+                    }
+                    ui.add_enabled_ui(tablature_supported, |ui| {
+                        if design::tab_button(ui, Icon::Tablature, "Tablatura", show_tablature)
+                            .clicked()
+                        {
+                            self.tablature = true;
+                        }
+                    });
+                    if !narrow {
+                        ui.with_layout(egui::Layout::right_to_left(Align::Center), |ui| {
+                            self.reading_controls(ui)
+                        });
+                    }
+                });
+                if narrow {
+                    ui.horizontal(|ui| self.reading_controls(ui));
+                }
+            },
+        );
+        let divider = ui.cursor().top() + 1.0;
+        ui.painter().line_segment(
+            [
+                Pos2::new(ui.max_rect().left(), divider),
+                Pos2::new(ui.max_rect().right(), divider),
+            ],
+            Stroke::new(1.0, design::PAPER),
+        );
+    }
+
+    fn reading_controls(&mut self, ui: &mut egui::Ui) {
+        ui.spacing_mut().item_spacing.x = 8.0;
+        if design::round_icon_button(ui, Icon::Settings, "Impostazioni di lettura", false, 32.0)
+            .clicked()
+        {
+            self.show_score_settings = true;
+        }
+        if design::round_icon_button(
+            ui,
+            Icon::Follow,
+            "Segui ascolto",
+            self.score_settings.follow,
+            32.0,
+        )
+        .clicked()
+        {
+            self.score_settings.follow = !self.score_settings.follow;
+        }
+        if design::round_icon_button(ui, Icon::Chords, "Mostra accordi", self.show_chords, 32.0)
+            .clicked()
+        {
+            self.show_chords = !self.show_chords;
+        }
+        if ui
+            .add(
+                egui::Button::new(
+                    RichText::new(format!("{}/4", self.score_settings.beats_per_bar))
+                        .font(design::number_font(12.0))
+                        .color(design::INK),
+                )
+                .frame(false)
+                .min_size(Vec2::new(42.0, 32.0)),
+            )
+            .on_hover_text("Metro e griglia")
+            .clicked()
+        {
+            self.show_score_settings = true;
+        }
+        ui.label(RichText::new("BPM").size(9.0).color(design::MUTED));
+        ui.scope(|ui| {
+            ui.style_mut().override_font_id = Some(design::number_font(14.0));
+            ui.add_sized(
+                [55.0, 32.0],
+                egui::DragValue::new(&mut self.score_settings.bpm)
+                    .range(30.0..=300.0)
+                    .speed(0.2)
+                    .fixed_decimals(0),
+            )
+            .on_hover_text("Tempo della trascrizione");
+        });
     }
 
     fn instrument_settings(&mut self, context: &egui::Context) {
@@ -1196,16 +1665,21 @@ impl eframe::App for TranscribeApp {
     fn update(&mut self, context: &egui::Context, _frame: &mut eframe::Frame) {
         self.poll_workers();
         self.keyboard(context);
-        self.sidebar(context);
         self.sync_midi_track();
         self.transport(context);
         if self.show_licenses {
             egui::Window::new("Font e licenze").open(&mut self.show_licenses).default_width(620.0).vscroll(true).show(context, |ui| {
-                ui.label("Transcriber! · Petaluma Script / Petaluma, Steinberg · GeneralUser GS, S. Christian Collins · RustySynth, Nobuyuki Tanaka.");
+                ui.label("Transcriber! · Apfel Grotezk, Collletttivo · Fraunces, Undercase Type · Monaspace, GitHub · Petaluma Script / Petaluma, Steinberg · GeneralUser GS, S. Christian Collins · RustySynth, Nobuyuki Tanaka.");
                 ui.label("MuScriptor: Kyutai e Mirelo. Il modello AI è CC BY-NC 4.0; i pesi hanno una licenza distinta dal codice dell'app.");
                 ui.hyperlink_to("Progetto e download", runtime::RELEASE_URL);
                 ui.separator();
                 ui.label(include_str!("../assets/fonts/OFL-Petaluma.txt"));
+                ui.separator();
+                ui.label(include_str!("../assets/fonts/OFL-Apfel-Grotezk.txt"));
+                ui.separator();
+                ui.label(include_str!("../assets/fonts/OFL-Monaspace.txt"));
+                ui.separator();
+                ui.label(include_str!("../assets/fonts/OFL-Fraunces.txt"));
                 ui.separator();
                 ui.label(include_str!("../assets/sounds/LICENSE-GeneralUser.txt"));
                 ui.separator();
@@ -1226,14 +1700,18 @@ impl eframe::App for TranscribeApp {
         egui::CentralPanel::default()
             .frame(
                 egui::Frame::new()
-                    .fill(BACKGROUND)
-                    .inner_margin(egui::Margin::symmetric(30, 26)),
+                    .fill(design::PAPER)
+                    .inner_margin(egui::Margin::symmetric(32, 12)),
             )
             .show(context, |ui| {
-                self.header(ui);
-                self.waveform(ui);
-                self.score_panel(ui);
+                let rect = workstation_rect(ui.available_rect_before_wrap());
+                ui.scope_builder(egui::UiBuilder::new().max_rect(rect), |ui| {
+                    self.header(ui);
+                    self.waveform(ui);
+                    self.score_panel(ui);
+                });
             });
+        self.library_modal(context);
         self.instrument_settings(context);
         self.reading_settings(context);
         if let Some(path) = &self.screenshot_path {
@@ -1339,20 +1817,17 @@ fn menu_action(ui: &mut egui::Ui, icon: Icon, label: &str, enabled: bool) -> boo
     .inner
 }
 
-fn left_heading(ui: &mut egui::Ui, title: &str, size: f32, height: f32) {
-    ui.allocate_ui_with_layout(
-        Vec2::new(ui.available_width(), height),
-        egui::Layout::left_to_right(Align::Center),
-        |ui| {
-            ui.add(egui::Label::new(RichText::new(title).size(size).strong()).truncate())
-                .on_hover_text(title);
-        },
-    );
+fn workstation_rect(rect: Rect) -> Rect {
+    let width = rect.width().min(1440.0);
+    Rect::from_min_size(
+        Pos2::new(rect.center().x - width * 0.5, rect.top()),
+        Vec2::new(width, rect.height()),
+    )
 }
 
 fn modal_heading(ui: &mut egui::Ui, title: &str) {
     ui.horizontal(|ui| {
-        ui.label(RichText::new(title).size(25.0).strong());
+        ui.label(RichText::new(title).font(design::strong_font(25.0)));
         ui.with_layout(egui::Layout::right_to_left(Align::Center), |ui| {
             if design::icon_button(ui, Icon::Cancel, "Chiudi · Esc", false).clicked() {
                 ui.close();

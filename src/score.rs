@@ -589,7 +589,7 @@ pub fn render_score(
             });
             ui.ctx()
                 .data_mut(|storage| storage.insert_temp(follow_id, follow_state));
-            let max_height = (ui.available_height() - 30.0).max(80.0);
+            let max_height = ui.available_height().max(80.0);
             egui::ScrollArea::vertical()
                 .id_salt("score_pages")
                 .max_height(max_height)
@@ -714,6 +714,18 @@ fn draw_row(
 ) -> Vec<NoteHit> {
     let mut hits = Vec::new();
     let end_x = geometry.left + bars as f32 * geometry.width;
+    if playback_tick >= geometry.start as f64 && playback_tick < geometry.end as f64 {
+        let measure = ((playback_tick - geometry.start as f64) / geometry.bar_ticks as f64).floor();
+        let left = geometry.left + measure as f32 * geometry.width;
+        painter.rect_filled(
+            Rect::from_min_max(
+                Pos2::new(left, geometry.staff_top - 45.0),
+                Pos2::new(left + geometry.width, geometry.staff_top + 66.0),
+            ),
+            0.0,
+            crate::design::BLUE.gamma_multiply(0.035),
+        );
+    }
     let stroke = Stroke::new(0.75, crate::design::STAFF_COLOR);
     for line in 0..5 {
         let y = geometry.staff_top + line as f32 * 10.0;
@@ -732,14 +744,14 @@ fn draw_row(
         Pos2::new(geometry.left - 8.0, geometry.staff_top + 10.0),
         egui::Align2::CENTER_CENTER,
         settings.beats_per_bar.to_string(),
-        FontId::proportional(18.0),
+        crate::design::jazz_font(18.0),
         ink,
     );
     painter.text(
         Pos2::new(geometry.left - 8.0, geometry.staff_top + 30.0),
         egui::Align2::CENTER_CENTER,
         "4",
-        FontId::proportional(18.0),
+        crate::design::jazz_font(18.0),
         ink,
     );
     for index in 0..=bars {
@@ -756,8 +768,8 @@ fn draw_row(
                 Pos2::new(x + 2.0, geometry.staff_top - 32.0),
                 egui::Align2::LEFT_CENTER,
                 (first_bar + index + 1).to_string(),
-                FontId::proportional(11.0),
-                ink,
+                crate::design::number_font(10.0),
+                crate::design::MUTED,
             );
             draw_measure_rests(painter, geometry, segments, index, settings, ink);
         }
@@ -769,9 +781,13 @@ fn draw_row(
                 Pos2::new(x, geometry.staff_top - 17.0),
                 Pos2::new(x, geometry.staff_top + 59.0),
             ],
-            Stroke::new(1.2, ink),
+            Stroke::new(1.2, crate::design::BLUE),
         );
-        painter.circle_filled(Pos2::new(x, geometry.staff_top - 20.0), 3.0, ink);
+        painter.circle_filled(
+            Pos2::new(x, geometry.staff_top - 20.0),
+            3.0,
+            crate::design::BLUE,
+        );
     }
     let mut chords: BTreeMap<(i64, usize, i64), Vec<&NoteSegment>> = BTreeMap::new();
     for segment in segments
@@ -1006,7 +1022,7 @@ fn draw_chord(
             Pos2::new(x, top - 44.0),
             egui::Align2::CENTER_CENTER,
             "3",
-            FontId::proportional(11.0),
+            crate::design::jazz_font(11.0),
             color,
         );
     }
@@ -1097,7 +1113,7 @@ pub(crate) fn draw_chord_symbols(
         }
         let galley = painter.layout_no_wrap(
             chord.symbol.clone(),
-            FontId::proportional(18.0),
+            crate::design::jazz_font(18.0),
             Color32::BLACK,
         );
         previous_right = x + galley.size().x;
@@ -1141,7 +1157,7 @@ fn draw_rest(painter: &egui::Painter, center: Pos2, duration: NotatedDuration, c
             center + Vec2::new(0.0, -24.0),
             egui::Align2::CENTER_CENTER,
             "3",
-            FontId::proportional(11.0),
+            crate::design::jazz_font(11.0),
             color,
         );
     }

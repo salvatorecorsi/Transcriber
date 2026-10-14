@@ -1,6 +1,6 @@
 # Componenti di terze parti
 
-Transcriber! incorpora Petaluma/Petaluma Script e GeneralUser GS senza modifiche. Il motore AI è distribuito separatamente o nel pacchetto completo; i pesi MuScriptor hanno una licenza distinta dal codice.
+Transcriber! incorpora Fraunces, Apfel Grotezk, Monaspace, Petaluma/Petaluma Script e GeneralUser GS. Apfel Grotezk e Monaspace sono convertiti da WOFF2 a TTF per il renderer nativo, senza modificare i disegni dei caratteri. Il motore AI è distribuito separatamente o nel pacchetto completo; i pesi MuScriptor hanno una licenza distinta dal codice.
 
 | Componente | Autori / origine | Licenza | Avviso completo |
 | --- | --- | --- | --- |
@@ -9,6 +9,9 @@ Transcriber! incorpora Petaluma/Petaluma Script e GeneralUser GS senza modifiche
 | PFFFT / FFTPACK | Julien Pommier; UCAR / NCAR | BSD-style | `LICENSE-pffft.txt` |
 | MuScriptor small, conversione GGUF f16 | Mirelo e Kyutai; conversione di Damien Ronssin | CC BY-NC 4.0 | `LICENSE-MuScriptor-model.txt`, `NOTICE-MuScriptor-model.md` |
 | Petaluma / Petaluma Script | Steinberg Media Technologies GmbH | SIL Open Font License 1.1 | `OFL-Petaluma.txt` |
+| Apfel Grotezk | Collletttivo, Luigi Gorlero | SIL Open Font License 1.1 | `OFL-Apfel-Grotezk.txt` |
+| Monaspace Neon | GitHub, Lettermatic | SIL Open Font License 1.1 | `OFL-Monaspace.txt` |
+| Fraunces | Undercase Type | SIL Open Font License 1.1 | `OFL-Fraunces.txt` |
 | GeneralUser GS 2.0.3 | S. Christian Collins | GeneralUser GS License 2.0 | `LICENSE-GeneralUser.txt` |
 | RustySynth | Nobuyuki Tanaka | MIT | `LICENSE-RustySynth.txt` |
 

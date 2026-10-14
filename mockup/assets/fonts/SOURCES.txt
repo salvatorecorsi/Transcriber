@@ -1,0 +1,19 @@
+Apfel Grotezk Regular and Mittel
+Source: https://www.salvatorecorsi.com/wp-content/themes/salvatorecorsi-theme/fonts/apfelgrotezk/
+Project: https://github.com/collletttivo/apfel-grotezk
+License: OFL-Apfel-Grotezk.txt
+
+Monaspace Neon Regular
+Source: https://www.salvatorecorsi.com/wp-content/themes/salvatorecorsi-theme/fonts/monospace/MonaspaceNeon-Regular.woff2
+Project: https://github.com/githubnext/monaspace
+License: OFL-Monaspace.txt
+
+Fraunces Black, optical size 144
+Source: Google Fonts, https://fonts.google.com/specimen/Fraunces
+Project: https://github.com/undercasetype/Fraunces
+License: OFL-Fraunces.txt
+
+Petaluma and Petaluma Script
+Source: existing Transcriber! font assets
+Project: https://github.com/steinbergmedia/petaluma
+License: OFL-Petaluma.txt

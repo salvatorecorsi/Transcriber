@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f5f5">
+  <title>Transcriber! — Kurt Rosenwinkel Break</title>
+  <link rel="stylesheet" href="mockup.css">
+</head>
+<body>
+  <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <symbol id="icon-folder" viewBox="0 0 24 24"><path d="M3 6.5h6l2 2h10v11H3z"/><path d="M3 10h18"/></symbol>
+      <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></symbol>
+      <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+      <symbol id="icon-play" viewBox="0 0 24 24"><path d="m9 6 9 6-9 6z" class="icon-fill"/></symbol>
+      <symbol id="icon-back" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 2 9M4 5v5h5"/><path d="M14 10h-4v3h3v4h-3"/></symbol>
+      <symbol id="icon-forward" viewBox="0 0 24 24"><path d="M20 10a8 8 0 1 0-2 9M20 5v5h-5"/><path d="M14 10h-4v3h3v4h-3"/></symbol>
+      <symbol id="icon-loop" viewBox="0 0 24 24"><path d="M4 9V6h15l-3-3M20 15v3H5l3 3M20 6v5M4 18v-5"/></symbol>
+      <symbol id="icon-volume" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4zM17 9a5 5 0 0 1 0 6M20 6a9 9 0 0 1 0 12"/></symbol>
+      <symbol id="icon-score" viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18M14 5v11"/><ellipse cx="11.5" cy="16.5" rx="2.5" ry="1.5" class="icon-fill"/></symbol>
+      <symbol id="icon-tab" viewBox="0 0 24 24"><path d="M3 5h18M3 10h18M3 15h18M3 20h18M10 5v15M15 8h3v4h-3v4h3"/></symbol>
+      <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6M16 14v6"/></symbol>
+      <symbol id="icon-follow" viewBox="0 0 24 24"><path d="M4 5v14M9 5h11M9 10h11M9 15h7M18 14l3 3-3 3"/></symbol>
+      <symbol id="icon-chord" viewBox="0 0 24 24"><path d="M6 7v13M12 4v13M18 7v13"/><ellipse cx="4" cy="20" rx="2" ry="1.3" class="icon-fill"/><ellipse cx="10" cy="17" rx="2" ry="1.3" class="icon-fill"/><ellipse cx="16" cy="20" rx="2" ry="1.3" class="icon-fill"/></symbol>
+      <symbol id="icon-wave" viewBox="0 0 24 24"><path d="M3 10v4M6 7v10M9 4v16M12 8v8M15 6v12M18 9v6M21 11v2"/></symbol>
+      <symbol id="icon-midi" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM9 5v14M15 5v14"/><path d="M7 5v8h4V5M13 5v8h4V5" class="icon-fill"/></symbol>
+    </defs>
+  </svg>
+  <main class="workstation">
+    <header class="app-header">
+      <a class="wordmark" href="#" aria-label="Transcriber!">Transcriber<span>!</span></a>
+      <div class="header-actions">
+        <button class="icon-button" type="button" aria-label="Apri audio" title="Apri audio"><svg><use href="#icon-folder"/></svg></button>
+        <button class="icon-button menu-button" type="button" aria-label="Menu: trascrizione, strumenti, esportazione" title="Menu"><svg><use href="#icon-menu"/></svg></button>
+      </div>
+    </header>
+
+    <section class="session-heading" aria-label="Brano aperto">
+      <div class="title-composition">
+        <span class="paper-label">Registrazione</span>
+        <h1>Kurt Rosenwinkel <em>Break</em></h1>
+      </div>
+      <button class="part-selector" type="button" aria-label="Parte visualizzata: chitarra elettrica">
+        <span class="part-icon"><svg><use href="#icon-score"/></svg></span>
+        <span><span class="eyebrow">Parte</span><strong>Chitarra elettrica</strong></span>
+        <svg class="chevron"><use href="#icon-chevron"/></svg>
+      </button>
+    </section>
+
+    <section class="waveform-panel" aria-label="Forma d’onda e intervallo di ascolto">
+      <div class="waveform-heading">
+        <span class="section-label">La registrazione</span>
+        <span class="zoom-indicator" aria-label="Zoom della forma d’onda: 1×" title="Zoom: Ctrl + rotella">1×</span>
+      </div>
+      <div class="waveform">
+        <div class="loop-selection"></div>
+        <svg class="waveform-drawing" viewBox="0 0 1200 96" preserveAspectRatio="none" role="img" aria-label="Forma d’onda del brano">
+          <path d="M0.0 24.0v48.0 M5.7 30.4v35.2 M11.4 22.5v51.1 M17.0 20.9v54.1 M22.7 26.8v42.5 M28.4 21.1v53.8 M34.1 19.2v57.6 M39.8 14.9v66.1 M45.4 16.1v63.9 M51.1 25.2v45.6 M56.8 16.2v63.5 M62.5 17.3v61.4 M68.2 17.6v60.8 M73.8 21.6v52.8 M79.5 29.3v37.4 M85.2 21.5v53.0 M90.9 25.3v45.5 M96.6 19.3v57.5 M102.2 32.0v32.0 M107.9 30.8v34.5 M113.6 20.2v55.6 M119.3 21.1v53.9 M125.0 23.3v49.3 M130.6 22.0v52.0 M136.3 20.2v55.6 M142.0 13.0v70.1 M147.7 16.8v62.4 M153.4 22.9v50.2 M159.0 17.8v60.4 M164.7 19.3v57.4 M170.4 16.3v63.5 M176.1 23.0v49.9 M181.8 30.7v34.6 M187.4 23.4v49.2 M193.1 17.7v60.5 M198.8 27.6v40.9 M204.5 31.0v34.0 M210.2 30.0v35.9 M215.8 19.2v57.6 M221.5 21.1v53.8 M227.2 19.7v56.7 M232.9 24.1v47.9 M238.6 20.3v55.5 M244.2 12.2v71.6 M249.9 17.6v60.8 M255.6 20.1v55.7 M261.3 20.7v54.5 M267.0 20.4v55.2 M272.6 15.9v64.1 M278.3 24.6v46.7 M284.0 30.5v35.1 M289.7 16.6v62.7 M295.4 29.3v37.4 M301.0 24.5v47.0 M306.7 30.2v35.5 M312.4 28.5v38.9 M318.1 19.6v56.8 M323.8 20.3v55.3 M329.4 16.7v62.7 M335.1 24.3v47.5 M340.8 19.6v56.9 M346.5 13.0v70.0 M352.2 17.8v60.4 M357.8 17.8v60.3 M363.5 24.3v47.3 M369.2 20.7v54.7 M374.9 17.1v61.8 M380.6 25.7v44.7 M386.2 18.7v58.5 M391.9 30.7v34.6 M397.6 29.0v37.9 M403.3 22.8v50.4 M409.0 28.9v38.1 M414.6 27.0v41.9 M420.3 21.1v53.8 M426.0 18.7v58.7 M431.7 15.0v66.0 M437.4 23.8v48.4 M443.0 18.8v58.4 M448.7 15.1v65.9 M454.4 17.0v62.0 M460.1 16.8v62.5 M465.8 27.7v40.5 M471.4 20.7v54.6 M477.1 19.6v56.8 M482.8 15.7v64.7 M488.5 28.0v40.0 M494.2 34.7v26.5 M499.8 26.6v42.7 M505.5 22.5v51.1 M511.2 26.6v42.8 M516.9 25.6v44.8 M522.6 22.9v50.3 M528.2 16.5v63.0 M533.9 14.8v66.4 M539.6 22.4v51.2 M545.3 18.8v58.4 M551.0 17.6v60.7 M556.6 15.7v64.7 M562.3 17.1v61.8 M568.0 28.2v39.6 M573.7 21.4v53.2 M579.4 12.7v70.5 M585.0 24.9v46.3 M590.7 28.5v38.9 M596.4 36.6v22.8 M602.1 24.6v46.8 M607.8 22.9v50.2 M613.4 23.4v49.3 M619.1 23.6v48.9 M624.8 24.1v47.9 M630.5 14.7v66.6 M636.2 15.6v64.8 M641.8 20.0v55.9 M647.5 20.1v55.7 M653.2 19.9v56.3 M658.9 14.5v67.1 M664.6 18.6v58.8 M670.2 27.0v42.1 M675.9 13.3v69.4 M681.6 25.7v44.6 M687.3 24.0v48.1 M693.0 30.2v35.7 M698.6 36.1v23.9 M704.3 23.8v48.5 M710.0 23.3v49.4 M715.7 19.8v56.4 M721.4 22.7v50.6 M727.0 24.2v47.5 M732.7 14.0v68.0 M738.4 16.6v62.8 M744.1 17.2v61.5 M749.8 22.3v51.4 M755.4 21.2v53.6 M761.1 14.3v67.5 M766.8 20.4v55.2 M772.5 15.1v65.9 M778.2 26.5v42.9 M783.8 27.7v40.5 M789.5 23.8v48.4 M795.2 30.4v35.1 M800.9 32.8v30.4 M806.6 24.3v47.4 M812.2 22.9v50.1 M817.9 16.9v62.2 M823.6 22.5v51.0 M829.3 23.5v48.9 M835.0 14.8v66.4 M840.6 17.0v62.0 M846.3 14.9v66.3 M852.0 23.0v50.0 M857.7 21.6v52.8 M863.4 15.5v64.9 M869.0 11.7v72.6 M874.7 23.3v49.4 M880.4 30.6v34.7 M886.1 28.8v38.4 M891.8 24.9v46.1 M897.4 29.5v37.1 M903.1 28.6v38.8 M908.8 25.9v44.3 M914.5 21.6v52.7 M920.2 15.3v65.5 M925.8 22.0v51.9 M931.5 22.6v50.7 M937.2 16.9v62.3 M942.9 16.6v62.9 M948.6 13.7v68.6 M954.2 23.7v48.7 M959.9 21.7v52.6 M965.6 8.2v79.6 M971.3 22.1v51.8 M977.0 22.5v51.0 M982.6 34.6v26.8 M988.3 29.3v37.3 M994.0 25.3v45.4 M999.7 27.5v41.0 M1005.4 25.1v45.8 M1011.0 27.7v40.6 M1016.7 19.7v56.5 M1022.4 15.1v65.8 M1028.1 20.7v54.6 M1033.8 20.8v54.3 M1039.4 19.5v57.0 M1045.1 15.4v65.1 M1050.8 14.0v68.0 M1056.5 23.5v49.0 M1062.2 12.3v71.5 M1067.8 21.6v52.8 M1073.5 21.7v52.6 M1079.2 23.1v49.8 M1084.9 35.3v25.4 M1090.6 30.1v35.9 M1096.2 26.1v43.8 M1101.9 24.6v46.8 M1107.6 22.9v50.2 M1113.3 29.0v38.1 M1119.0 18.0v59.9 M1124.6 16.1v63.9 M1130.3 18.5v59.1 M1136.0 19.1v57.7 M1141.7 21.8v52.3 M1147.4 14.4v67.2 M1153.0 15.6v64.9 M1158.7 12.3v71.3 M1164.4 24.0v48.0 M1170.1 24.8v46.3 M1175.8 21.1v53.7 M1181.4 24.9v46.2 M1187.1 34.8v26.4"/>
+        </svg>
+        <span class="loop-marker loop-marker-start"><span></span></span>
+        <span class="loop-marker loop-marker-end"><span></span></span>
+        <span class="playhead"><span></span></span>
+      </div>
+      <div class="time-ruler"><span>00:00</span><span>03:00</span><span>06:00</span><span>09:00</span><span>12:00</span><span>15:00</span><span>18:12</span></div>
+    </section>
+
+    <section class="score-paper" aria-label="Trascrizione della chitarra">
+      <div class="score-toolbar">
+        <div class="view-tabs" role="tablist" aria-label="Visualizzazione musicale">
+          <button class="view-tab is-selected" type="button" role="tab" aria-selected="true"><svg><use href="#icon-score"/></svg><span>Spartito</span></button>
+          <button class="view-tab" type="button" role="tab" aria-selected="false"><svg><use href="#icon-tab"/></svg><span>Tablatura</span></button>
+        </div>
+        <div class="reading-controls">
+          <span class="tempo-value"><strong>174</strong><span>BPM</span></span>
+          <span class="meter-value">4/4</span>
+          <button class="small-icon-button is-active" type="button" aria-label="Mostra accordi" title="Mostra accordi"><svg><use href="#icon-chord"/></svg></button>
+          <button class="small-icon-button" type="button" aria-label="Segui ascolto" title="Segui ascolto"><svg><use href="#icon-follow"/></svg></button>
+          <button class="small-icon-button" type="button" aria-label="Impostazioni di lettura" title="Impostazioni di lettura"><svg><use href="#icon-settings"/></svg></button>
+        </div>
+      </div>
+      <div class="notation-wrap">
+        <svg class="notation" viewBox="0 0 1220 369" role="img" aria-labelledby="notation-title">
+          <title id="notation-title">Due sistemi di pentagramma per chitarra, con note e sigle degli accordi</title>
+          <rect class="current-bar" x="307" y="51" width="277" height="116" rx="2"/>
+          <g class="staff-lines"><path d="M35 93H1180"/><path d="M35 103H1180"/><path d="M35 113H1180"/><path d="M35 123H1180"/><path d="M35 133H1180"/><path d="M35 93V133"/><path d="M300 93V133"/><path d="M590 93V133"/><path d="M880 93V133"/><path d="M1180 93V133"/></g><text class="music-clef" x="41" y="127">&#xE050;</text><text class="time-signature" x="87" y="114">4</text><text class="time-signature" x="87" y="132">4</text><text class="bar-number" x="36" y="166">9</text><text class="chord-label" x="116" y="45">B♭m7</text><ellipse class="note-head" cx="120" cy="123" rx="6" ry="4.2" transform="rotate(-21 120 123)"/><path class="note-stem" d="M125.3 122.5v-31"/><path class="note-beam" d="M125.3 92L153.18 87"/><ellipse class="note-head" cx="147.88" cy="118" rx="6" ry="4.2" transform="rotate(-21 147.88 118)"/><path class="note-stem" d="M153.18 117.5v-31"/><ellipse class="note-head" cx="175.76" cy="108" rx="6" ry="4.2" transform="rotate(-21 175.76 108)"/><path class="note-stem" d="M181.06 107.5v-31"/><path class="note-beam" d="M181.06 77L208.94 82"/><ellipse class="note-head" cx="203.64" cy="113" rx="6" ry="4.2" transform="rotate(-21 203.64 113)"/><path class="note-stem" d="M208.94 112.5v-31"/><ellipse class="note-head" cx="236.44" cy="123" rx="6" ry="4.2" transform="rotate(-21 236.44 123)"/><path class="note-stem" d="M241.74 122.5v-31"/><path class="note-beam" d="M241.74 92L271.26 82"/><ellipse class="note-head" cx="265.96" cy="113" rx="6" ry="4.2" transform="rotate(-21 265.96 113)"/><path class="note-stem" d="M271.26 112.5v-31"/><text class="bar-number" x="302" y="166">10</text><text class="chord-label" x="333" y="45">E♭7</text><ellipse class="note-head" cx="337" cy="113" rx="6" ry="4.2" transform="rotate(-21 337 113)"/><path class="note-stem" d="M342.3 112.5v-31"/><path class="note-beam" d="M342.3 82L379.7 77"/><ellipse class="note-head" cx="374.4" cy="108" rx="6" ry="4.2" transform="rotate(-21 374.4 108)"/><path class="note-stem" d="M379.7 107.5v-31"/><ellipse class="note-head" cx="414" cy="98" rx="6" ry="4.2" transform="rotate(-21 414 98)"/><path class="note-stem" d="M419.3 97.5v-31"/><path class="note-beam" d="M419.3 67L457.8 72"/><ellipse class="note-head" cx="452.5" cy="103" rx="6" ry="4.2" transform="rotate(-21 452.5 103)"/><path class="note-stem" d="M457.8 102.5v-31"/><ellipse class="note-head" cx="493.20000000000005" cy="113" rx="6" ry="4.2" transform="rotate(-21 493.20000000000005 113)"/><path class="note-stem" d="M498.50000000000006 112.5v-31"/><path class="note-beam" d="M498.50000000000006 82L538.0999999999999 87"/><ellipse class="note-head" cx="532.8" cy="118" rx="6" ry="4.2" transform="rotate(-21 532.8 118)"/><path class="note-stem" d="M538.0999999999999 117.5v-31"/><text class="bar-number" x="592" y="166">11</text><text class="chord-label" x="623" y="45">A♭maj7</text><ellipse class="note-head" cx="627" cy="118" rx="6" ry="4.2" transform="rotate(-21 627 118)"/><path class="note-stem" d="M632.3 117.5v-31"/><path class="note-beam" d="M632.3 87L676.3 77"/><ellipse class="note-head" cx="671" cy="108" rx="6" ry="4.2" transform="rotate(-21 671 108)"/><path class="note-stem" d="M676.3 107.5v-31"/><ellipse class="note-head" cx="710.6" cy="103" rx="6" ry="4.2" transform="rotate(-21 710.6 103)"/><path class="note-stem" d="M715.9 102.5v-31"/><path class="note-beam" d="M715.9 72L755.5 82"/><ellipse class="note-head" cx="750.2" cy="113" rx="6" ry="4.2" transform="rotate(-21 750.2 113)"/><path class="note-stem" d="M755.5 112.5v-31"/><ellipse class="note-head" cx="793.1" cy="123" rx="6" ry="4.2" transform="rotate(-21 793.1 123)"/><path class="note-stem" d="M798.4 122.5v-31"/><path class="note-beam" d="M798.4 92L834.6999999999999 97"/><ellipse class="note-head" cx="829.4" cy="128" rx="6" ry="4.2" transform="rotate(-21 829.4 128)"/><path class="note-stem" d="M834.6999999999999 127.5v-31"/><text class="bar-number" x="882" y="166">12</text><text class="chord-label" x="913" y="45">D♭7</text><ellipse class="note-head" cx="917" cy="123" rx="6" ry="4.2" transform="rotate(-21 917 123)"/><path class="note-stem" d="M922.3 122.5v-31"/><path class="note-beam" d="M922.3 92L961.9 82"/><ellipse class="note-head" cx="956.6" cy="113" rx="6" ry="4.2" transform="rotate(-21 956.6 113)"/><path class="note-stem" d="M961.9 112.5v-31"/><ellipse class="note-head" cx="996.2" cy="118" rx="6" ry="4.2" transform="rotate(-21 996.2 118)"/><path class="note-stem" d="M1001.5 117.5v-31"/><path class="note-beam" d="M1001.5 87L1043.3 77"/><ellipse class="note-head" cx="1038" cy="108" rx="6" ry="4.2" transform="rotate(-21 1038 108)"/><path class="note-stem" d="M1043.3 107.5v-31"/><ellipse class="note-head" cx="1077.6" cy="103" rx="6" ry="4.2" transform="rotate(-21 1077.6 103)"/><path class="note-stem" d="M1082.8999999999999 102.5v-31"/><path class="note-beam" d="M1082.8999999999999 72L1121.3999999999999 82"/><ellipse class="note-head" cx="1116.1" cy="113" rx="6" ry="4.2" transform="rotate(-21 1116.1 113)"/><path class="note-stem" d="M1121.3999999999999 112.5v-31"/><g class="staff-lines"><path d="M35 270H1180"/><path d="M35 280H1180"/><path d="M35 290H1180"/><path d="M35 300H1180"/><path d="M35 310H1180"/><path d="M35 270V310"/><path d="M300 270V310"/><path d="M590 270V310"/><path d="M880 270V310"/><path d="M1180 270V310"/></g><text class="music-clef" x="41" y="304">&#xE050;</text><text class="time-signature" x="87" y="291">4</text><text class="time-signature" x="87" y="309">4</text><text class="bar-number" x="36" y="343">13</text><text class="chord-label" x="116" y="222">Gm7♭5</text><ellipse class="note-head" cx="120" cy="285" rx="6" ry="4.2" transform="rotate(-21 120 285)"/><path class="note-stem" d="M125.3 284.5v-31"/><path class="note-beam" d="M125.3 254L154 249"/><ellipse class="note-head" cx="148.7" cy="280" rx="6" ry="4.2" transform="rotate(-21 148.7 280)"/><path class="note-stem" d="M154 279.5v-31"/><ellipse class="note-head" cx="177.4" cy="290" rx="6" ry="4.2" transform="rotate(-21 177.4 290)"/><path class="note-stem" d="M182.70000000000002 289.5v-31"/><path class="note-beam" d="M182.70000000000002 259L214.68 264"/><ellipse class="note-head" cx="209.38" cy="295" rx="6" ry="4.2" transform="rotate(-21 209.38 295)"/><path class="note-stem" d="M214.68 294.5v-31"/><ellipse class="note-head" cx="238.89999999999998" cy="285" rx="6" ry="4.2" transform="rotate(-21 238.89999999999998 285)"/><path class="note-stem" d="M244.2 284.5v-31"/><path class="note-beam" d="M244.2 254L273.71999999999997 244"/><ellipse class="note-head" cx="268.41999999999996" cy="275" rx="6" ry="4.2" transform="rotate(-21 268.41999999999996 275)"/><path class="note-stem" d="M273.71999999999997 274.5v-31"/><text class="bar-number" x="302" y="343">14</text><text class="chord-label" x="333" y="222">C7(♭9)</text><ellipse class="note-head" cx="337" cy="280" rx="6" ry="4.2" transform="rotate(-21 337 280)"/><path class="note-stem" d="M342.3 279.5v-31"/><path class="note-beam" d="M342.3 249L381.90000000000003 259"/><ellipse class="note-head" cx="376.6" cy="290" rx="6" ry="4.2" transform="rotate(-21 376.6 290)"/><path class="note-stem" d="M381.90000000000003 289.5v-31"/><ellipse class="note-head" cx="416.2" cy="300" rx="6" ry="4.2" transform="rotate(-21 416.2 300)"/><path class="note-stem" d="M421.5 299.5v-31"/><path class="note-beam" d="M421.5 269L463.3 264"/><ellipse class="note-head" cx="458" cy="295" rx="6" ry="4.2" transform="rotate(-21 458 295)"/><path class="note-stem" d="M463.3 294.5v-31"/><ellipse class="note-head" cx="498.70000000000005" cy="285" rx="6" ry="4.2" transform="rotate(-21 498.70000000000005 285)"/><path class="note-stem" d="M504.00000000000006 284.5v-31"/><path class="note-beam" d="M504.00000000000006 254L542.5 259"/><ellipse class="note-head" cx="537.2" cy="290" rx="6" ry="4.2" transform="rotate(-21 537.2 290)"/><path class="note-stem" d="M542.5 289.5v-31"/><text class="bar-number" x="592" y="343">15</text><text class="chord-label" x="623" y="222">Fm9</text><ellipse class="note-head" cx="627" cy="295" rx="6" ry="4.2" transform="rotate(-21 627 295)"/><path class="note-stem" d="M632.3 294.5v-31"/><path class="note-beam" d="M632.3 264L674.0999999999999 254"/><ellipse class="note-head" cx="668.8" cy="285" rx="6" ry="4.2" transform="rotate(-21 668.8 285)"/><path class="note-stem" d="M674.0999999999999 284.5v-31"/><ellipse class="note-head" cx="706.2" cy="290" rx="6" ry="4.2" transform="rotate(-21 706.2 290)"/><path class="note-stem" d="M711.5 289.5v-31"/><path class="note-beam" d="M711.5 259L753.3 269"/><ellipse class="note-head" cx="748" cy="300" rx="6" ry="4.2" transform="rotate(-21 748 300)"/><path class="note-stem" d="M753.3 299.5v-31"/><ellipse class="note-head" cx="787.6" cy="305" rx="6" ry="4.2" transform="rotate(-21 787.6 305)"/><path class="note-stem" d="M792.9 304.5v-31"/><path class="note-beam" d="M792.9 274L831.4 264"/><ellipse class="note-head" cx="826.1" cy="295" rx="6" ry="4.2" transform="rotate(-21 826.1 295)"/><path class="note-stem" d="M831.4 294.5v-31"/><text class="bar-number" x="882" y="343">16</text><text class="chord-label" x="913" y="222">B♭13</text><ellipse class="note-head" cx="917" cy="290" rx="6" ry="4.2" transform="rotate(-21 917 290)"/><path class="note-stem" d="M922.3 289.5v-31"/><path class="note-beam" d="M922.3 259L960.8 264"/><ellipse class="note-head" cx="955.5" cy="295" rx="6" ry="4.2" transform="rotate(-21 955.5 295)"/><path class="note-stem" d="M960.8 294.5v-31"/><ellipse class="note-head" cx="994" cy="305" rx="6" ry="4.2" transform="rotate(-21 994 305)"/><path class="note-stem" d="M999.3 304.5v-31"/><path class="note-beam" d="M999.3 274L1043.3 269"/><ellipse class="note-head" cx="1038" cy="300" rx="6" ry="4.2" transform="rotate(-21 1038 300)"/><path class="note-stem" d="M1043.3 299.5v-31"/><ellipse class="note-head" cx="1077.6" cy="290" rx="6" ry="4.2" transform="rotate(-21 1077.6 290)"/><path class="note-stem" d="M1082.8999999999999 289.5v-31"/><path class="note-beam" d="M1082.8999999999999 259L1124.7 254"/><ellipse class="note-head" cx="1119.4" cy="285" rx="6" ry="4.2" transform="rotate(-21 1119.4 285)"/><path class="note-stem" d="M1124.7 284.5v-31"/>
+          <path class="score-cursor" d="M361 57v99"/>
+          <circle class="score-cursor-dot" cx="361" cy="57" r="3"/>
+        </svg>
+      </div>
+      <footer class="score-footer">
+        <span class="instrument-note">Chitarra <span>·</span> accordatura standard</span>
+        <span class="page-counter">01 <span>/</span> 24</span>
+      </footer>
+      <span class="paper-corner" aria-hidden="true"></span>
+    </section>
+
+    <footer class="transport" aria-label="Controlli di riproduzione">
+      <div class="playback-controls">
+        <button class="play-button" type="button" aria-label="Riproduci"><svg><use href="#icon-play"/></svg></button>
+        <button class="icon-button" type="button" aria-label="Indietro di 5 secondi" title="Indietro di 5 secondi"><svg><use href="#icon-back"/></svg></button>
+        <button class="icon-button" type="button" aria-label="Avanti di 5 secondi" title="Avanti di 5 secondi"><svg><use href="#icon-forward"/></svg></button>
+        <button class="icon-button loop-button is-active" type="button" aria-label="Loop attivo" title="Loop"><svg><use href="#icon-loop"/></svg></button>
+      </div>
+      <div class="position-readout"><strong>01:24<span>.6</span></strong></div>
+      <div class="speed-control" aria-label="Velocità di riproduzione">
+        <span class="eyebrow">Velocità</span>
+        <div class="speed-presets">
+          <button type="button" aria-label="Velocità 0,5">½×</button>
+          <button class="is-selected" type="button" aria-label="Velocità 0,75">¾×</button>
+          <button type="button" aria-label="Velocità normale">1×</button>
+        </div>
+      </div>
+      <div class="source-switch" role="group" aria-label="Sorgente di ascolto">
+        <button class="is-selected" type="button" aria-label="Ascolta audio originale"><svg><use href="#icon-wave"/></svg><span>Audio</span></button>
+        <button type="button" aria-label="Ascolta MIDI"><svg><use href="#icon-midi"/></svg><span>MIDI</span></button>
+      </div>
+      <div class="volume-control" aria-label="Volume al 70 per cento"><svg><use href="#icon-volume"/></svg><span class="volume-track"><span></span></span></div>
+    </footer>
+  </main>
+</body>
+</html>

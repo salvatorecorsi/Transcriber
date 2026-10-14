@@ -61,8 +61,8 @@ Copy-Item -LiteralPath (Join-Path $distributionDirectory 'transcriber-ai-vulkan.
 
 Get-ChildItem -LiteralPath (Join-Path $workspaceDirectory 'assets/licenses') -File |
     ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $packageDirectory 'licenses') }
-Copy-Item -LiteralPath (Join-Path $workspaceDirectory 'assets/fonts/OFL-Petaluma.txt') `
-    -Destination (Join-Path $packageDirectory 'licenses/OFL-Petaluma.txt')
+Get-ChildItem -LiteralPath (Join-Path $workspaceDirectory 'assets/fonts') -Filter 'OFL-*.txt' -File |
+    ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $packageDirectory 'licenses') }
 Copy-Item -LiteralPath (Join-Path $workspaceDirectory 'assets/sounds/LICENSE-GeneralUser.txt') `
     -Destination (Join-Path $packageDirectory 'licenses/LICENSE-GeneralUser.txt')
 if (Test-Path -LiteralPath (Join-Path $workspaceDirectory 'LICENSE') -PathType Leaf) {
@@ -80,6 +80,7 @@ Font e suoni MIDI sono incorporati nell'applicazione.
 Apri il tuo audio con l'icona della cartella e scegli Trascrivi audio dal menu in alto a destra.
 Seleziona la parte da studiare e usa le icone Spartito / Tablatura e Audio / MIDI.
 Clicca una nota per ascoltarla; trascina le due stanghette colorate per regolare il loop.
+Usa Ctrl + rotella sulla forma d'onda per ingrandire o ridurre l'audio attorno al puntatore.
 Il menu contiene gli export MIDI e MusicXML e le finestre Modalita strumenti e Impostazioni di lettura.
 Le trascrizioni e le impostazioni si salvano nella stessa cartella dell'app.
 

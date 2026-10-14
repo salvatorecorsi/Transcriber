@@ -1,12 +1,12 @@
 # Transcriber!
 
-Workstation desktop in Rust per studiare registrazioni, rallentarle senza cambiare intonazione e trascriverle in spartito, tablatura e MIDI. Interfaccia ispirata ai jazz Real Book, font Petaluma Script e comandi a icone con il bordo irregolare di una fotocopia. I due limiti del loop hanno colori distinti per riconoscerli sulla forma d'onda.
+Workstation desktop in Rust per studiare registrazioni, rallentarle senza cambiare intonazione e trascriverle in spartito, tablatura e MIDI. Interfaccia editoriale ispirata ai ritagli e alla stampa di International Anthem, con i colori di salvatorecorsi.com. Titoli Fraunces, comandi Apfel Grotezk e valori Monaspace; Petaluma resta dedicato alla notazione musicale. I due limiti del loop sono blu e corallo.
 
 ## Scarica e avvia
 
-Scarica [Transcriber.exe](https://github.com/salvatorecorsi/Transcriber/releases/download/v0.3.1/Transcriber.exe), aprilo e scegli **Installa AI** dal menù in alto a destra. Il primo avvio scarica il motore e il modello MuScriptor small, circa 200 MB più il motore. Poi la trascrizione funziona offline. Non servono account GitHub, Rust, Python, compilatori o un'installazione separata dei font. Riproduzione audio e sintesi MIDI sono già disponibili nell'eseguibile.
+Scarica [Transcriber.exe](https://github.com/salvatorecorsi/Transcriber/releases/download/v0.4.0/Transcriber.exe), aprilo e scegli **Installa AI** dal menù in alto a destra. Il primo avvio scarica il motore e il modello MuScriptor small, circa 200 MB più il motore. Poi la trascrizione funziona offline. Non servono account GitHub, Rust, Python, compilatori o un'installazione separata dei font. Riproduzione audio e sintesi MIDI sono già disponibili nell'eseguibile.
 
-Per avere tutto pronto anche su un computer senza connessione, scarica [Transcriber-Windows-x64.zip](https://github.com/salvatorecorsi/Transcriber/releases/download/v0.3.1/Transcriber-Windows-x64.zip), estrai l'intera cartella e apri `Transcriber.exe`. Il pacchetto comprende motore CPU, accelerazione Vulkan, modello e licenze. Il file `portable.flag` fa salvare le impostazioni e le trascrizioni nella cartella estratta.
+Per avere tutto pronto anche su un computer senza connessione, scarica [Transcriber-Windows-x64.zip](https://github.com/salvatorecorsi/Transcriber/releases/download/v0.4.0/Transcriber-Windows-x64.zip), estrai l'intera cartella e apri `Transcriber.exe`. Il pacchetto comprende motore CPU, accelerazione Vulkan, modello e licenze. Il file `portable.flag` fa salvare le impostazioni e le trascrizioni nella cartella estratta.
 
 Requisiti: Windows 10 o 11 a 64 bit, uscita audio disponibile e un processore x64 con AVX e F16C. La CPU è sufficiente. Quando il driver offre Vulkan, l'app preferisce la GPU; se il motore GPU non parte, riprova con la CPU. La velocità di trascrizione dipende dall'hardware e dalla durata del brano.
 
@@ -14,7 +14,7 @@ Tutti i download sono disponibili nelle [release pubbliche](https://github.com/s
 
 ## Studiare un brano
 
-Apri un file audio con l'icona della cartella. Il player offre play/pausa, seek sulla waveform, zoom, volume e velocità da 0,25× a 1,5× mantenendo l'intonazione. I comandi hanno tooltip con il nome della funzione. Trascina le due stanghette colorate sulla waveform per impostare inizio e fine del loop; l'icona del loop lo attiva o disattiva. Spazio alterna play/pausa, le frecce spostano di cinque secondi e Home torna all'inizio. I imposta l'inizio del loop, O la fine e L lo attiva.
+L'icona della cartella apre la libreria locale e il comando per scegliere un nuovo file audio. Il player offre play/pausa, seek sulla waveform, zoom da 1× a 64× con Ctrl + rotella ancorato al puntatore, volume e velocità da 0,25× a 1,5× mantenendo l'intonazione. I comandi hanno tooltip con il nome della funzione. Trascina le due stanghette colorate sulla waveform per impostare inizio e fine del loop; l'icona del loop lo attiva o disattiva. Spazio alterna play/pausa, le frecce spostano di cinque secondi e Home torna all'inizio. I imposta l'inizio del loop, O la fine e L lo attiva.
 
 Dal menù in alto a destra, **Trascrivi audio** esegue MuScriptor sul computer. **Modalità strumenti…** apre una finestra per scegliere il riconoscimento automatico, limitare il modello alla chitarra elettrica o indicare il quartetto chitarra/contrabbasso/piano/batteria. La scelta vale per la trascrizione successiva. L'icona di annullamento interrompe il processo. I file audio restano sul computer e non vengono caricati sul server del modello.
 
@@ -22,7 +22,7 @@ Seleziona la parte riconosciuta per mostrarne le note. Le icone **Spartito / Tab
 
 Le righe del pentagramma e le corde sono grigie, mentre note e cifre dei tasti restano nere. La tablatura mostra gli attacchi senza linee di durata; le cifre hanno maggiore spazio tra le corde e restano integre anche negli accordi.
 
-Le icone **Audio / MIDI** permettono di ascoltare la registrazione oppure la parte selezionata con i suoni General MIDI incorporati. Il clic su una nota dello spartito o della tablatura ne riproduce subito l'anteprima MIDI. Loop, posizione e velocità restano sincronizzati con la visualizzazione. La scelta della parte cambia la notazione e l'ascolto MIDI; l'audio originale rimane il mix della registrazione.
+Le icone **Audio / MIDI** permettono di ascoltare la registrazione oppure la parte selezionata con i suoni General MIDI incorporati. Il clic su una nota dello spartito o della tablatura ne riproduce subito l'anteprima MIDI. Loop, posizione e velocità restano sincronizzati con la visualizzazione. Il selettore accanto al titolo sceglie la parte riconosciuta. La scelta della parte cambia la notazione e l'ascolto MIDI; l'audio originale rimane il mix della registrazione.
 
 Le sigle degli **accordi** sono inferite dalle note simultanee e sostenute riconosciute nell'intera trascrizione. Comprendono qualità maggiori, minori, diminuite, aumentate, sospese, settime ed estensioni jazz. Sono una lettura armonica automatica: un voicing senza fondamentale o una nota estranea può avere più interpretazioni.
 
@@ -71,4 +71,4 @@ La modalità `--install-ai` prepara motore e modello senza aprire la finestra. `
 
 [NeuralNote](https://github.com/DamRsn/NeuralNote) usa [muscriptor.cpp](https://github.com/DamRsn/muscriptor.cpp), port di [MuScriptor](https://github.com/muscriptor/muscriptor) di Mirelo e Kyutai. Il codice del motore è MIT. I [pesi MuScriptor GGUF](https://huggingface.co/DamRsn/muscriptor-gguf) sono **CC BY-NC 4.0, per uso non commerciale**, e conservano le condizioni di utilizzo pubblicate dagli autori.
 
-[Petaluma e Petaluma Script](https://github.com/steinbergmedia/petaluma) di Steinberg sono SIL OFL 1.1; [GeneralUser GS](https://schristiancollins.com/generaluser.php) di S. Christian Collins usa la propria licenza GeneralUser GS 2.0. Il sintetizzatore [RustySynth](https://github.com/sinshu/rustysynth) è MIT. Avvisi, attribuzioni e testi delle licenze sono disponibili nell'app e in [assets/licenses](assets/licenses/THIRD-PARTY.md); gli originali dei font e del SoundFont sono nelle rispettive cartelle `assets/fonts` e `assets/sounds`.
+[Fraunces](https://github.com/undercasetype/Fraunces), [Apfel Grotezk](https://github.com/collletttivo/apfel-grotezk), [Monaspace](https://github.com/githubnext/monaspace), [Petaluma e Petaluma Script](https://github.com/steinbergmedia/petaluma) sono SIL OFL 1.1; [GeneralUser GS](https://schristiancollins.com/generaluser.php) di S. Christian Collins usa la propria licenza GeneralUser GS 2.0. Il sintetizzatore [RustySynth](https://github.com/sinshu/rustysynth) è MIT. Avvisi, attribuzioni e testi delle licenze sono disponibili nell'app e in [assets/licenses](assets/licenses/THIRD-PARTY.md); gli originali dei font e del SoundFont sono nelle rispettive cartelle `assets/fonts` e `assets/sounds`.

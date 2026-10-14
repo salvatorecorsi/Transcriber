@@ -1,5 +1,45 @@
 # Changelog
 
+## 2026-10-14 — Transcriber! 0.4.0: interfaccia editoriale in Rust
+
+### Richiesta
+Portare nell'applicazione Rust il mockup approvato, ispirato ai ritagli di International Anthem e alla palette del sito personale. Eliminare i pulsanti di zoom della waveform e usare Ctrl + rotella.
+
+### Modifiche effettuate
+- `src/design.rs`, `assets/fonts/ApfelGrotezk-Regular.ttf`, `assets/fonts/ApfelGrotezk-Mittel.ttf`, `assets/fonts/MonaspaceNeon-Regular.ttf`, `assets/fonts/Fraunces-Black.ttf`: tema editoriale con titoli Fraunces su carta ritagliata, interfaccia Apfel Grotezk, numeri Monaspace e palette bianca/grigia con blu `#333fff` e corallo `#e95b38`; mantenuta Petaluma per la notazione musicale.
+- `src/app.rs`: libreria audio in modale, selettore della parte accanto al titolo, pannello spartito/tablatura su carta bianca, controlli allineati e player compatto; mantenuti menu, impostazioni, trascrizione, esportazioni, ascolto MIDI e anteprima delle note.
+- `src/waveform.rs`, `src/app.rs`: zoom da 1× a 64× con Ctrl + rotella ancorato al punto sotto il puntatore, senza pulsanti +/−; estremi del loop blu e corallo trascinabili. Il seek esplicito ripristina l'inseguimento della posizione dopo lo zoom manuale.
+- `src/score.rs`, `src/tablature.rs`: struttura della notazione grigia, note e cifre nere, cursore blu e distinzione tra font musicali e numerici; recuperati i 30 pixel ancora riservati al vecchio footer per rendere visibili tutte le sei corde nella finestra compatta.
+- `src/main.rs`: dimensioni iniziali e minime della finestra adattate alla nuova composizione.
+- `Cargo.toml`, `Cargo.lock`, `src/runtime.rs`, `README.md`, `tools/package.ps1`: versione 0.4.0, documentazione dei controlli e inclusione delle licenze dei font nel pacchetto.
+- `assets/fonts/OFL-Apfel-Grotezk.txt`, `assets/fonts/OFL-Monaspace.txt`, `assets/fonts/OFL-Fraunces.txt`, `assets/licenses/THIRD-PARTY.md`: licenze e attribuzioni dei nuovi font incorporati nell'eseguibile.
+
+### Note
+- Superati 63 test e Clippy con warning trattati come errori, incluse regressioni per zoom ancorato, priorità dei gesti sul loop e ripristino dell'inseguimento dopo il seek.
+- Verificati tramite screenshot nativi spartito e tablatura a 1440×900 e 1000×700, spartito a 1280×720 e tutte le sei corde nel viewport compatto. Menu, libreria, modalità degli strumenti e impostazioni di lettura controllati a 1280×720.
+- Motore AI e separazione delle tracce non modificati; quest'ultima resta esclusa dal progetto.
+- Generato il pacchetto e verificato l'avvio dell'eseguibile autonomo e dello ZIP estratto fuori dal workspace, con font incorporati. L'eseguibile propone l'installazione AI; il pacchetto completo riconosce motori e modello inclusi. Lo ZIP non contiene audio dell'utente né trascrizioni.
+- Release in preparazione; nessuna pubblicazione registrata in questa voce.
+
+---
+
+## 2026-10-14 — Mockup editoriale della nuova interfaccia
+
+### Richiesta
+Preparare un mockup HTML non funzionante prima di intervenire sull'app Rust, ispirato ai ritagli e alla stampa di International Anthem e ai colori del sito personale.
+
+### Modifiche effettuate
+- `mockup/index.html`: prototipo statico con titolo su ritaglio, waveform, estremi del loop colorati, spartito grigio con note nere e comandi a icona; trasporto sempre visibile su desktop. Rimossi i pulsanti di zoom della waveform, mantenendo l'indicatore 1× con tooltip “Zoom: Ctrl + rotella”.
+- `mockup/mockup.css`: composizione editoriale, superfici di carta e adattamento alle diverse larghezze con palette `#f5f5f5`, `#000000`, `#333fff` e `#e95b38`.
+- `mockup/assets/fonts/`: font locali Fraunces, Apfel Grotezk, Monaspace e Petaluma, con licenze e fonti in `SOURCES.txt`.
+
+### Note
+- Verificato visivamente a 1280×720 e 1024×768; controllati assenza di overflow a 375 pixel e caricamento dei font senza errori.
+- Il prototipo non modifica il codice Rust e non costituisce una release. La separazione AI degli strumenti resta esclusa dal progetto; nessuna pubblicazione effettuata.
+- Lo zoom con Ctrl + rotella è previsto per la futura UI Rust; nel mockup resta soltanto un'indicazione statica, senza JavaScript.
+
+---
+
 ## 2026-10-13 — Transcriber! 0.3.1: leggibilità della notazione
 
 ### Richiesta

@@ -1,6 +1,12 @@
 use eframe::egui::{self, Color32, FontId, Pos2, Response, RichText, Sense, Shape, Stroke, Vec2};
 
-pub const STAFF_COLOR: Color32 = Color32::from_gray(155);
+pub const PAPER: Color32 = Color32::from_rgb(245, 245, 245);
+pub const WHITE: Color32 = Color32::WHITE;
+pub const INK: Color32 = Color32::BLACK;
+pub const BLUE: Color32 = Color32::from_rgb(51, 63, 255);
+pub const CORAL: Color32 = Color32::from_rgb(233, 91, 56);
+pub const MUTED: Color32 = Color32::from_gray(118);
+pub const STAFF_COLOR: Color32 = Color32::from_gray(186);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Icon {
@@ -12,13 +18,10 @@ pub enum Icon {
     Audio,
     Midi,
     Volume,
-    Speed,
     Score,
     Tablature,
     Settings,
     Menu,
-    ZoomIn,
-    ZoomOut,
     Folder,
     Transcribe,
     Instruments,
@@ -28,25 +31,59 @@ pub enum Icon {
     Tap,
     Downbeat,
     Cancel,
-    Fit,
+    Chords,
+    Follow,
 }
 
 pub fn configure(context: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
-    fonts.font_data.insert(
-        "Petaluma Script".into(),
-        egui::FontData::from_static(include_bytes!("../assets/fonts/PetalumaScript.otf")).into(),
-    );
-    fonts.font_data.insert(
-        "Petaluma".into(),
-        egui::FontData::from_static(include_bytes!("../assets/fonts/Petaluma.otf")).into(),
-    );
-    for family in [egui::FontFamily::Proportional, egui::FontFamily::Monospace] {
+    for (name, font) in [
+        (
+            "Apfel",
+            include_bytes!("../assets/fonts/ApfelGrotezk-Regular.ttf").as_slice(),
+        ),
+        (
+            "Apfel Strong",
+            include_bytes!("../assets/fonts/ApfelGrotezk-Mittel.ttf").as_slice(),
+        ),
+        (
+            "Monaspace",
+            include_bytes!("../assets/fonts/MonaspaceNeon-Regular.ttf").as_slice(),
+        ),
+        (
+            "Fraunces",
+            include_bytes!("../assets/fonts/Fraunces-Black.ttf").as_slice(),
+        ),
+        (
+            "Petaluma Script",
+            include_bytes!("../assets/fonts/PetalumaScript.otf").as_slice(),
+        ),
+        (
+            "Petaluma",
+            include_bytes!("../assets/fonts/Petaluma.otf").as_slice(),
+        ),
+    ] {
         fonts
-            .families
-            .entry(family)
-            .or_default()
-            .insert(0, "Petaluma Script".into());
+            .font_data
+            .insert(name.into(), egui::FontData::from_static(font).into());
+    }
+    let fallback = fonts.families[&egui::FontFamily::Proportional].clone();
+    for (family, name) in [
+        (egui::FontFamily::Proportional, "Apfel"),
+        (egui::FontFamily::Monospace, "Monaspace"),
+        (egui::FontFamily::Name("Editorial".into()), "Fraunces"),
+        (
+            egui::FontFamily::Name("InterfaceStrong".into()),
+            "Apfel Strong",
+        ),
+        (
+            egui::FontFamily::Name("JazzScript".into()),
+            "Petaluma Script",
+        ),
+    ] {
+        let mut names = vec![name.into()];
+        names.extend(fallback.iter().cloned());
+        fonts.families.insert(family, names);
     }
     fonts.families.insert(
         egui::FontFamily::Name("JazzMusic".into()),
@@ -55,57 +92,91 @@ pub fn configure(context: &egui::Context) {
     context.set_fonts(fonts);
     context.set_theme(egui::Theme::Light);
     let mut visuals = egui::Visuals::light();
-    visuals.panel_fill = Color32::WHITE;
-    visuals.window_fill = Color32::WHITE;
-    visuals.extreme_bg_color = Color32::WHITE;
-    visuals.faint_bg_color = Color32::WHITE;
-    visuals.hyperlink_color = Color32::BLACK;
-    visuals.warn_fg_color = Color32::BLACK;
-    visuals.error_fg_color = Color32::BLACK;
-    visuals.selection.bg_fill = Color32::BLACK;
-    visuals.selection.stroke = Stroke::new(1.0, Color32::WHITE);
-    visuals.widgets.noninteractive.fg_stroke = Stroke::new(1.0, Color32::BLACK);
-    visuals.widgets.noninteractive.bg_stroke = Stroke::new(1.0, Color32::BLACK);
+    visuals.panel_fill = PAPER;
+    visuals.window_fill = WHITE;
+    visuals.extreme_bg_color = WHITE;
+    visuals.faint_bg_color = PAPER;
+    visuals.hyperlink_color = BLUE;
+    visuals.warn_fg_color = CORAL;
+    visuals.error_fg_color = CORAL;
+    visuals.selection.bg_fill = BLUE;
+    visuals.selection.stroke = Stroke::new(1.0, WHITE);
+    visuals.widgets.noninteractive.fg_stroke = Stroke::new(1.0, INK);
+    visuals.widgets.noninteractive.bg_stroke = Stroke::new(1.0, Color32::from_gray(225));
     for widget in [
         &mut visuals.widgets.inactive,
         &mut visuals.widgets.hovered,
         &mut visuals.widgets.active,
         &mut visuals.widgets.open,
     ] {
-        widget.bg_fill = Color32::WHITE;
-        widget.weak_bg_fill = Color32::WHITE;
-        widget.bg_stroke = Stroke::new(1.0, Color32::BLACK);
-        widget.fg_stroke = Stroke::new(1.0, Color32::BLACK);
-        widget.corner_radius = egui::CornerRadius::ZERO;
+        widget.bg_fill = WHITE;
+        widget.weak_bg_fill = PAPER;
+        widget.bg_stroke = Stroke::NONE;
+        widget.fg_stroke = Stroke::new(1.0, INK);
+        widget.corner_radius = egui::CornerRadius::same(6);
     }
-    visuals.window_shadow = egui::epaint::Shadow::NONE;
-    visuals.popup_shadow = egui::epaint::Shadow::NONE;
+    visuals.widgets.hovered.weak_bg_fill = Color32::from_gray(235);
+    visuals.widgets.active.weak_bg_fill = BLUE.gamma_multiply(0.08);
+    visuals.window_stroke = Stroke::new(1.0, Color32::from_gray(225));
+    visuals.window_corner_radius = egui::CornerRadius::same(10);
+    visuals.window_shadow = egui::epaint::Shadow {
+        offset: [0, 3],
+        blur: 16,
+        spread: 0,
+        color: Color32::from_black_alpha(20),
+    };
+    visuals.popup_shadow = visuals.window_shadow;
+    visuals.handle_shape = egui::style::HandleShape::Circle;
     context.set_visuals(visuals);
     context.style_mut(|style| {
-        style.spacing.item_spacing = Vec2::new(8.0, 7.0);
+        style.spacing.item_spacing = Vec2::new(9.0, 7.0);
         style.spacing.button_padding = Vec2::new(11.0, 7.0);
         style.spacing.slider_width = 105.0;
+        style.spacing.slider_rail_height = 2.0;
         style
             .text_styles
-            .insert(egui::TextStyle::Body, FontId::proportional(17.0));
+            .insert(egui::TextStyle::Body, FontId::proportional(14.0));
         style
             .text_styles
-            .insert(egui::TextStyle::Button, FontId::proportional(17.0));
+            .insert(egui::TextStyle::Button, FontId::proportional(14.0));
         style
             .text_styles
-            .insert(egui::TextStyle::Small, FontId::proportional(13.0));
+            .insert(egui::TextStyle::Small, FontId::proportional(11.0));
+        style
+            .text_styles
+            .insert(egui::TextStyle::Heading, display_font(27.0));
+        style
+            .text_styles
+            .insert(egui::TextStyle::Monospace, number_font(13.0));
     });
+    context.options_mut(|options| options.zoom_with_keyboard = false);
 }
 
 pub fn button(label: &str) -> egui::Button<'static> {
-    egui::Button::new(RichText::new(label.to_owned()).color(Color32::WHITE))
-        .fill(Color32::BLACK)
-        .corner_radius(0.0)
+    egui::Button::new(RichText::new(label.to_owned()).color(INK))
+        .fill(PAPER)
+        .corner_radius(6.0)
+}
+
+pub fn display_font(size: f32) -> FontId {
+    FontId::new(size, egui::FontFamily::Name("Editorial".into()))
+}
+
+pub fn strong_font(size: f32) -> FontId {
+    FontId::new(size, egui::FontFamily::Name("InterfaceStrong".into()))
+}
+
+pub fn number_font(size: f32) -> FontId {
+    FontId::monospace(size)
+}
+
+pub fn jazz_font(size: f32) -> FontId {
+    FontId::new(size, egui::FontFamily::Name("JazzScript".into()))
 }
 
 pub fn slider(ui: &mut egui::Ui, slider: egui::Slider<'_>) -> Response {
     ui.scope(|ui| {
-        ui.visuals_mut().widgets.inactive.bg_fill = Color32::BLACK;
+        ui.visuals_mut().widgets.inactive.bg_fill = INK;
         ui.add(slider)
     })
     .inner
@@ -117,42 +188,169 @@ pub fn icon_button(ui: &mut egui::Ui, icon: Icon, tooltip: &str, selected: bool)
         egui::WidgetInfo::selected(egui::WidgetType::Button, ui.is_enabled(), selected, tooltip)
     });
     if ui.is_rect_visible(rect) {
-        let skew = 0.7 + (icon as usize % 5) as f32 * 0.16;
-        let ink = if ui.is_enabled() {
-            Color32::BLACK
+        let background = if selected || response.hovered() {
+            PAPER
         } else {
-            Color32::BLACK.gamma_multiply(0.4)
+            Color32::TRANSPARENT
         };
-        ui.painter().add(Shape::convex_polygon(
-            vec![
-                Pos2::new(rect.left() + 0.4, rect.top() + skew),
-                Pos2::new(rect.right() - 0.5, rect.top()),
-                Pos2::new(rect.right(), rect.bottom() - skew),
-                Pos2::new(rect.left(), rect.bottom()),
-            ],
-            ink,
-            Stroke::NONE,
-        ));
+        ui.painter().rect_filled(rect, 6.0, background);
+        let foreground = control_ink(ui, if selected { BLUE } else { INK });
         paint_icon(
             ui.painter(),
             icon,
             rect.center() - Vec2::splat(12.0),
-            Color32::WHITE,
-            ink,
+            foreground,
+            if background == Color32::TRANSPARENT {
+                ui.visuals().panel_fill
+            } else {
+                background
+            },
         );
-        if selected || response.hovered() || response.has_focus() {
-            ui.painter().line_segment(
-                [
-                    Pos2::new(rect.left() + 6.0, rect.bottom() - 3.0),
-                    Pos2::new(rect.right() - 6.0, rect.bottom() - 3.7),
-                ],
-                Stroke::new(if selected { 2.0 } else { 1.0 }, Color32::WHITE),
+        if response.has_focus() {
+            ui.painter().rect_stroke(
+                rect.shrink(1.0),
+                6.0,
+                Stroke::new(1.0, BLUE),
+                egui::StrokeKind::Inside,
             );
         }
     }
     response
         .on_hover_cursor(egui::CursorIcon::PointingHand)
         .on_hover_text(tooltip)
+}
+
+pub fn round_icon_button(
+    ui: &mut egui::Ui,
+    icon: Icon,
+    tooltip: &str,
+    selected: bool,
+    size: f32,
+) -> Response {
+    let (rect, response) = ui.allocate_exact_size(Vec2::splat(size), Sense::click());
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(egui::WidgetType::Button, ui.is_enabled(), selected, tooltip)
+    });
+    if ui.is_rect_visible(rect) {
+        let primary = matches!(icon, Icon::Play | Icon::Pause | Icon::Menu);
+        let background = if primary {
+            control_ink(ui, INK)
+        } else if selected || response.hovered() {
+            PAPER
+        } else {
+            Color32::TRANSPARENT
+        };
+        ui.painter()
+            .circle_filled(rect.center(), size * 0.5, background);
+        let foreground = if primary {
+            WHITE
+        } else {
+            control_ink(ui, if selected { BLUE } else { INK })
+        };
+        paint_icon(
+            ui.painter(),
+            icon,
+            rect.center() - Vec2::splat(12.0),
+            foreground,
+            background,
+        );
+        if response.has_focus() {
+            ui.painter()
+                .circle_stroke(rect.center(), size * 0.5 - 1.0, Stroke::new(1.0, BLUE));
+        }
+    }
+    response
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .on_hover_text(tooltip)
+}
+
+pub fn tab_button(ui: &mut egui::Ui, icon: Icon, label: &str, selected: bool) -> Response {
+    let text = ui.painter().layout_no_wrap(
+        label.to_owned(),
+        FontId::proportional(13.0),
+        if selected { INK } else { MUTED },
+    );
+    let (rect, response) =
+        ui.allocate_exact_size(Vec2::new(text.size().x + 48.0, 36.0), Sense::click());
+    response.widget_info(|| {
+        egui::WidgetInfo::selected(
+            egui::WidgetType::SelectableLabel,
+            ui.is_enabled(),
+            selected,
+            label,
+        )
+    });
+    if ui.is_rect_visible(rect) {
+        let background = if selected || response.hovered() {
+            PAPER
+        } else {
+            Color32::TRANSPARENT
+        };
+        ui.painter().rect_filled(rect, 6.0, background);
+        let foreground = control_ink(ui, if selected { INK } else { MUTED });
+        paint_icon(
+            ui.painter(),
+            icon,
+            Pos2::new(rect.left() + 8.0, rect.center().y - 12.0),
+            foreground,
+            if background == Color32::TRANSPARENT {
+                ui.visuals().panel_fill
+            } else {
+                background
+            },
+        );
+        ui.painter().galley(
+            Pos2::new(rect.left() + 35.0, rect.center().y - text.size().y * 0.5),
+            text,
+            foreground,
+        );
+        if response.has_focus() {
+            ui.painter().rect_stroke(
+                rect.shrink(1.0),
+                6.0,
+                Stroke::new(1.0, BLUE),
+                egui::StrokeKind::Inside,
+            );
+        }
+    }
+    response
+        .on_hover_cursor(egui::CursorIcon::PointingHand)
+        .on_hover_text(label)
+}
+
+fn control_ink(ui: &egui::Ui, color: Color32) -> Color32 {
+    if ui.is_enabled() {
+        color
+    } else {
+        color.gamma_multiply(0.35)
+    }
+}
+
+pub fn paint_paper(painter: &egui::Painter, rect: egui::Rect) {
+    let outline = [
+        rect.left_top(),
+        rect.right_top(),
+        rect.right_bottom() - Vec2::new(1.0, 4.0),
+        Pos2::new(rect.left() + rect.width() * 0.82, rect.bottom() - 1.0),
+        Pos2::new(rect.left() + rect.width() * 0.65, rect.bottom() - 3.0),
+        Pos2::new(rect.left() + rect.width() * 0.47, rect.bottom()),
+        Pos2::new(rect.left() + rect.width() * 0.24, rect.bottom() - 2.0),
+        rect.left_bottom() - Vec2::new(0.0, 1.0),
+    ];
+    for (offset, color) in [
+        (Vec2::new(1.0, 2.0), Color32::from_gray(229)),
+        (Vec2::ZERO, WHITE),
+    ] {
+        let mut mesh = egui::Mesh::default();
+        mesh.colored_vertex(rect.center() + offset, color);
+        for point in outline {
+            mesh.colored_vertex(point + offset, color);
+        }
+        for index in 1..=outline.len() as u32 {
+            mesh.add_triangle(0, index, index % outline.len() as u32 + 1);
+        }
+        painter.add(Shape::mesh(mesh));
+    }
 }
 
 pub fn icon_label(ui: &mut egui::Ui, icon: Icon, tooltip: &str) -> Response {
@@ -165,8 +363,8 @@ pub fn icon_label(ui: &mut egui::Ui, icon: Icon, tooltip: &str) -> Response {
             ui.painter(),
             icon,
             rect.center() - Vec2::splat(12.0),
-            Color32::BLACK,
-            Color32::WHITE,
+            MUTED,
+            PAPER,
         );
     }
     response.on_hover_text(tooltip)
@@ -210,13 +408,29 @@ fn paint_icon(
             rectangle(6.0, 4.0, 10.0, 20.0);
             rectangle(14.0, 4.0, 18.0, 20.0);
         }
-        Icon::Backward => {
-            polygon(&[(12.0, 5.0), (3.0, 12.0), (12.0, 19.0)]);
-            polygon(&[(22.0, 5.0), (13.0, 12.0), (22.0, 19.0)]);
-        }
-        Icon::Forward => {
-            polygon(&[(2.0, 5.0), (11.0, 12.0), (2.0, 19.0)]);
-            polygon(&[(12.0, 5.0), (21.0, 12.0), (12.0, 19.0)]);
+        Icon::Backward | Icon::Forward => {
+            let forward = icon == Icon::Forward;
+            let direction = if forward { -1.0 } else { 1.0 };
+            let mirror = |x: f32| if forward { 24.0 - x } else { x };
+            let arc = (0..=20)
+                .map(|step| {
+                    let angle = -std::f32::consts::PI * 0.83
+                        + step as f32 * std::f32::consts::PI * 1.65 / 20.0;
+                    position(
+                        12.0 + direction * angle.cos() * 8.0,
+                        12.0 + angle.sin() * 8.0,
+                    )
+                })
+                .collect();
+            painter.add(Shape::line(arc, stroke));
+            line(&[(mirror(4.0), 4.0), (mirror(4.0), 9.0), (mirror(9.0), 9.0)]);
+            painter.text(
+                position(12.0, 12.0),
+                egui::Align2::CENTER_CENTER,
+                "5",
+                number_font(10.0),
+                foreground,
+            );
         }
         Icon::Repeat => {
             line(&[(4.0, 10.0), (4.0, 6.0), (19.0, 6.0)]);
@@ -252,21 +466,6 @@ fn paint_icon(
             ]);
             line(&[(16.0, 8.0), (18.0, 10.0), (18.0, 14.0), (16.0, 16.0)]);
             line(&[(19.0, 5.0), (22.0, 8.0), (22.0, 16.0), (19.0, 19.0)]);
-        }
-        Icon::Speed => {
-            line(&[
-                (3.0, 18.0),
-                (3.0, 12.0),
-                (5.0, 7.0),
-                (9.0, 4.0),
-                (15.0, 4.0),
-                (19.0, 7.0),
-                (21.0, 12.0),
-                (21.0, 18.0),
-            ]);
-            line(&[(12.0, 16.0), (17.0, 9.0)]);
-            painter.circle_filled(position(12.0, 16.0), 2.0, foreground);
-            line(&[(6.0, 18.0), (18.0, 18.0)]);
         }
         Icon::Score => {
             for y in [5.0, 8.0, 11.0, 14.0, 17.0] {
@@ -319,14 +518,6 @@ fn paint_icon(
         Icon::Menu => {
             for y in [6.0, 12.0, 18.0] {
                 line(&[(3.0, y), (21.0, y)]);
-            }
-        }
-        Icon::ZoomIn | Icon::ZoomOut => {
-            ring(10.0, 10.0, 6.5);
-            line(&[(15.0, 15.0), (21.0, 21.0)]);
-            line(&[(6.5, 10.0), (13.5, 10.0)]);
-            if icon == Icon::ZoomIn {
-                line(&[(10.0, 6.5), (10.0, 13.5)]);
             }
         }
         Icon::Folder => {
@@ -418,11 +609,22 @@ fn paint_icon(
             line(&[(5.0, 5.0), (19.0, 19.0)]);
             line(&[(19.0, 5.0), (5.0, 19.0)]);
         }
-        Icon::Fit => {
-            line(&[(9.0, 3.0), (3.0, 3.0), (3.0, 9.0)]);
-            line(&[(15.0, 3.0), (21.0, 3.0), (21.0, 9.0)]);
-            line(&[(3.0, 15.0), (3.0, 21.0), (9.0, 21.0)]);
-            line(&[(21.0, 15.0), (21.0, 21.0), (15.0, 21.0)]);
+        Icon::Chords => {
+            for (x, y) in [(6.0, 18.0), (12.0, 14.0), (18.0, 18.0)] {
+                line(&[(x, 4.0), (x, y)]);
+                painter.add(Shape::ellipse_filled(
+                    position(x - 2.0, y),
+                    Vec2::new(2.5, 1.6),
+                    foreground,
+                ));
+            }
+        }
+        Icon::Follow => {
+            line(&[(4.0, 4.0), (4.0, 20.0)]);
+            line(&[(9.0, 5.0), (21.0, 5.0)]);
+            line(&[(9.0, 10.0), (21.0, 10.0)]);
+            line(&[(9.0, 15.0), (16.0, 15.0)]);
+            line(&[(18.0, 14.0), (22.0, 18.0), (18.0, 22.0)]);
         }
     }
 }
